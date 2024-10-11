@@ -2,9 +2,9 @@ import {Module} from '@nestjs/common';
 import {OtpService} from './otp.service';
 import {OtpController} from './otp.controller';
 import {MongooseModule} from '@nestjs/mongoose';
-import {Otp, OtpSchema} from './otp.model';
+import {Otp, OtpSchema} from '../models/otp.model';
 import {NotificationModule} from "../notification/notification.module";
-import {User, UserSchema} from "../user/user.model";
+import {User, UserSchema} from "../models/user.model";
 
 @Module({
     imports: [

@@ -3,8 +3,8 @@ import { Document } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
 @Schema({ timestamps: true })
-export class User extends Document {
-  @Prop({ type: String, unique: true, default: uuidv4 }) // Generate UUID by default
+export class Admin extends Document {
+  @Prop({ type: String, unique: true, default: uuidv4 })
   id: string;
 
   @Prop({ required: true })
@@ -23,6 +23,6 @@ export class User extends Document {
   verified: boolean;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const AdminSchema = SchemaFactory.createForClass(Admin);
 
-UserSchema.index({ id: 1 }, { unique: true });
+AdminSchema.index({ id: 1 }, { unique: true });

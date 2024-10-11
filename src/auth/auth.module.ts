@@ -3,10 +3,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UserModule } from '../user/user.module';
-import { NotificationModule } from '../notification/notification.module';
+import {Otp, OtpSchema} from "../models/otp.model";
 
 @Module({
-  imports: [UserModule],
+  imports: [
+      UserModule,
+      MongooseModule.forFeature([{name: Otp.name, schema: OtpSchema}]),
+  ],
   controllers: [AuthController],
   providers: [AuthService],
 })

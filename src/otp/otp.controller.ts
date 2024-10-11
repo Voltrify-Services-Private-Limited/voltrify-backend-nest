@@ -1,6 +1,7 @@
-import {Body, Controller, Post} from '@nestjs/common';
+import {Body, Controller, Post, Res} from '@nestjs/common';
 import {OtpService} from './otp.service';
 import {successResponse} from "../utils/response.util";
+import {Response} from "express";
 
 @Controller('otp')
 export class OtpController {
@@ -8,8 +9,8 @@ export class OtpController {
     }
 
     @Post('generate-otp')
-    async sendOtp(@Body() req: any) {
-        return await this.otpService.generateAndSendOtp(req)
+    async sendOtp(@Body() req: any, @Res() res: Response) {
+        const result = await this.otpService.generateAndSendOtp(req)
+        return res.status(result.statusCode).json(result)
     }
-
 }
