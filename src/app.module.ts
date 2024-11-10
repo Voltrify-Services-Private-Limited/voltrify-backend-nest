@@ -8,8 +8,6 @@ import {AuthModule} from './auth/auth.module';
 import {OtpModule} from './otp/otp.module';
 import {NotificationModule} from './notification/notification.module';
 import * as process from "node:process";
-import {AuthGuard} from "./auth/guards/auth/auth.guard";
-import {APP_GUARD} from "@nestjs/core";
 import { ServiceModule } from './service/service.module';
 import { AdminModule } from './admin/admin.module';
 

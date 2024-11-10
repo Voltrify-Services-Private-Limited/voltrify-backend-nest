@@ -1,15 +1,15 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from '@nestjs/mongoose';
 import {Model} from 'mongoose';
-import {User} from '../models/user.model';
-import {errorResponse, successResponse} from "../utils/response.util";
+import {User} from '../../models/user.model';
+import {errorResponse, successResponse} from "../../utils/response.util";
 import {Request} from 'express';
-import {Otp} from "../models/otp.model";
-import {generateAccessToken, generateRefreshToken, verifyRefreshToken} from '../utils/jwt.util';
+import {Otp} from "../../models/otp.model";
+import {generateAccessToken, generateRefreshToken, verifyRefreshToken} from '../../utils/jwt.util';
 import {ConfigService} from "@nestjs/config";
 
 @Injectable()
-export class AuthService {
+export class UserService {
     constructor(
         @InjectModel(User.name) private userModel: Model<User>,
         @InjectModel(Otp.name) private otpModel: Model<Otp>,

@@ -3,9 +3,12 @@ import {Document} from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
 
 @Schema({timestamps: true})
-export class Service extends Document {
+export class StoreService extends Document {
     @Prop({type: String, unique: true, default: uuidv4})
     id: string;
+
+    @Prop({type: String, required: true, ref: 'Store'})
+    store_id: string;
 
     @Prop({type: String, required: true, ref: 'Device'})
     device_id: string;
@@ -23,6 +26,6 @@ export class Service extends Document {
     visiting_charge: number;
 }
 
-export const ServiceSchema = SchemaFactory.createForClass(Service);
+export const StoreServiceSchema = SchemaFactory.createForClass(StoreService);
 
-ServiceSchema.index({id: 1}, {unique: true});
+StoreServiceSchema.index({id: 1}, {unique: true});
