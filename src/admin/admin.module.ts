@@ -9,6 +9,10 @@ import {DeviceCondition, DeviceConditionSchema} from "../models/device_condition
 import {Order, OrderSchema} from "../models/order.model";
 import {Service, ServiceSchema} from "../models/service.model";
 import {VoltrifyDevices, VoltrifyDevicesSchema} from "../models/voltrify_devices.model";
+import { CategoryController } from './Category/category.controller';
+import { CategoryService } from './Category/category.service';
+import { DeviceService } from './Device/device.service';
+import { DeviceController } from './Device/device.controller';
 
 @Module({
     imports: [
@@ -20,10 +24,14 @@ import {VoltrifyDevices, VoltrifyDevicesSchema} from "../models/voltrify_devices
             {name: VoltrifyDevices.name, schema: VoltrifyDevicesSchema},
             {name: Order.name, schema: OrderSchema},
             {name: Service.name, schema: ServiceSchema}
-        ])
+        ]),
+
+        
     ],
-    controllers: [AdminController],
-    providers: [AdminService],
+    controllers: [AdminController,CategoryController,DeviceController],
+    providers: [AdminService,CategoryService,DeviceService],
+    
 })
 export class AdminModule {
 }
+
