@@ -7,8 +7,13 @@ import { Device} from '../../models/device.model';
 export class DeviceService {
   constructor(@InjectModel(Device.name) private readonly deviceModel: Model<Device>) {}
 
-  async create(name: string, description: string, categories_id: string[]): Promise<Device> {
-    const newDevice = new this.deviceModel({ name, description, categories_id });
+  async create(
+    name: string,
+    description: string,
+    categories_id: string[],
+    images: string[],
+  ): Promise<Device> {
+    const newDevice = new this.deviceModel({ name, description, categories_id, images });
     return newDevice.save();
   }
 
@@ -27,13 +32,19 @@ export class DeviceService {
     name: string,
     description: string,
     categories_id: string[],
+    images: string[],
   ): Promise<Device> {
     const updatedDevice = await this.deviceModel
-      .findOneAndUpdate({ id }, { name, description, categories_id }, { new: true })
+      .findOneAndUpdate(
+        { id },
+        { name, description, categories_id, $push: { images: { $each: images } } },
+        { new: true },
+      )
       .exec();
     if (!updatedDevice) throw new NotFoundException(`Device with ID ${id} not found`);
     return updatedDevice;
   }
+  
 
   async delete(id: string): Promise<void> {
     const result = await this.deviceModel.deleteOne({ id }).exec();

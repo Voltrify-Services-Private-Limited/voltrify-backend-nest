@@ -15,6 +15,9 @@ export class Device extends Document {
 
   @Prop({ type: [String], required: true, ref: 'Category' })
   categories_id: string[];
+
+  @Prop({ type: [String], default: [] }) 
+  images: string[];
 }
 
 export const DeviceSchema = SchemaFactory.createForClass(Device);
