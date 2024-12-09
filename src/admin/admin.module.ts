@@ -13,6 +13,8 @@ import { CategoryController } from './Category/category.controller';
 import { CategoryService } from './Category/category.service';
 import { DeviceService } from './Device/device.service';
 import { DeviceController } from './Device/device.controller';
+import { VoltrifyDevicesController } from './VoltrifyDevices/voltrifydevicesController';
+import { VoltrifyDevicesService } from './VoltrifyDevices/voltrifydevices.service';
 
 @Module({
     imports: [
@@ -28,8 +30,8 @@ import { DeviceController } from './Device/device.controller';
 
         
     ],
-    controllers: [AdminController,CategoryController,DeviceController],
-    providers: [AdminService,CategoryService,DeviceService],
+    controllers: [AdminController,CategoryController,DeviceController,VoltrifyDevicesController],
+    providers: [AdminService,CategoryService,DeviceService,VoltrifyDevicesService],
     
 })
 export class AdminModule {
