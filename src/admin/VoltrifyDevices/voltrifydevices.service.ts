@@ -11,11 +11,10 @@ export class VoltrifyDevicesService {
     @InjectModel(VoltrifyDevices.name) private voltrifyDevicesModel: Model<VoltrifyDevices>,
     @InjectModel(Device.name) private deviceModel: Model<Device>,
     @InjectModel(Category.name) private categoryModel: Model<Category>,
-  ) {}
-
+  ) { }
   private async aggregateDeviceData(deviceId?: string) {
     const pipeline: any[] = [
-      ...(deviceId ? [{ $match: { device_id: deviceId } }] : []), 
+      ...(deviceId ? [{ $match: { device_id: deviceId } }] : []),
       {
         $lookup: {
           from: 'devices',
@@ -24,19 +23,18 @@ export class VoltrifyDevicesService {
           as: 'deviceDetails',
         },
       },
-      { $unwind: '$deviceDetails' },
       {
         $lookup: {
           from: 'categories',
-          localField: 'deviceDetails.categories',
+          localField: 'deviceDetails.categories_id',
           foreignField: 'id',
           as: 'categoriesDetails',
         },
       },
-      { $unwind: { path: '$categoriesDetails', preserveNullAndEmptyArrays: true } },
       {
         $group: {
           _id: '$device_id',
+          deviceId: { $first: '$deviceDetails.id' },
           deviceName: { $first: '$deviceDetails.name' },
           deviceDescription: { $first: '$deviceDetails.description' },
           images: { $first: '$deviceDetails.images' },
@@ -52,12 +50,11 @@ export class VoltrifyDevicesService {
       {
         $project: {
           _id: 0,
+          deviceId: 1,
           deviceName: 1,
           deviceDescription: 1,
           images: 1,
-          'categories.id': 1,
-          'categories.name': 1,
-          'categories.image': 1,
+          categories: 1,
         },
       },
     ];

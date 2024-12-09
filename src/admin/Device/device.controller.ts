@@ -1,4 +1,4 @@
-import {Controller,Post,Body,Get,Param,Patch,Delete,UploadedFiles,UseInterceptors,} from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Delete, UploadedFiles, UseInterceptors, } from '@nestjs/common';
 import { DeviceService } from '../Device/device.service';
 import { successResponse, errorResponse } from '../../utils/response.util';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -6,10 +6,10 @@ import { multerConfig } from '../../utils/multer-config';
 
 @Controller('devices')
 export class DeviceController {
-  constructor(private readonly deviceService: DeviceService) {}
+  constructor(private readonly deviceService: DeviceService) { }
 
   @Post()
-  @UseInterceptors(FilesInterceptor('images', 5, multerConfig)) 
+  @UseInterceptors(FilesInterceptor('images', 5, multerConfig))
   async create(
     @Body() body: any,
     @UploadedFiles() images?: Express.Multer.File[],
@@ -19,13 +19,8 @@ export class DeviceController {
       const imagePaths = images
         ? images.map((file) => `/uploads/${file.filename}`)
         : [];
-      const device = await this.deviceService.create(
-        name,
-        description,
-        categories_id,
-        imagePaths,
-      );
-      return successResponse(201, 'Device created successfully', device);
+      const device = await this.deviceService.create(name, description, categories_id, imagePaths,);
+      return successResponse(201, 'Device created successfully');
     } catch (error) {
       return errorResponse(400, 'Failed to create device', error.message);
     }
@@ -63,14 +58,8 @@ export class DeviceController {
       const imagePaths = images
         ? images.map((file) => `/uploads/${file.filename}`)
         : [];
-      const updatedDevice = await this.deviceService.update(
-        id,
-        name,
-        description,
-        categories_id,
-        imagePaths,
-      );
-      return successResponse(200, 'Device updated successfully', updatedDevice);
+      const updatedDevice = await this.deviceService.update(id, name, description, categories_id, imagePaths,);
+      return successResponse(200, 'Device updated successfully',updatedDevice);
     } catch (error) {
       return errorResponse(400, 'Failed to update device', error.message);
     }

@@ -15,7 +15,6 @@ export class VoltrifyDevicesController {
     };
   }
   
-
   @Get(':deviceId')
   async getDeviceById(@Param('deviceId') deviceId: string) {
     try {
@@ -41,8 +40,7 @@ export class VoltrifyDevicesController {
     const newDevice = await this.voltrifyDevicesService.createDevice(deviceId);
     return {
       statusCode: 201,
-      message: 'Device created successfully',
-      data: newDevice,
+      message: 'Device created successfully'
     };
   }
 

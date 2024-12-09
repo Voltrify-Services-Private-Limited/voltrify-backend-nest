@@ -22,7 +22,7 @@ export class CategoryController {
         description,
         imagePath,
       );
-      return successResponse(201, 'Category created successfully', category);
+      return successResponse(201, 'Category created successfully');
     } catch (error) {
       return errorResponse(400, 'Failed to create category', error.message);
     }
@@ -68,11 +68,7 @@ export class CategoryController {
         description,
         imagePath,
       );
-      return successResponse(
-        200,
-        'Category updated successfully',
-        updatedCategory,
-      );
+      return successResponse(200,'Category updated successfully',updatedCategory);
     } catch (error) {
       return errorResponse(400, 'Failed to update category', error.message);
     }
