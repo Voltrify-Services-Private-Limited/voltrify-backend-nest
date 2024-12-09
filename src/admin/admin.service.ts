@@ -10,6 +10,4 @@ export class AdminService {
     constructor(
         @InjectModel(Admin.name) private AdminModel: Model<Admin>
     ) {}
-
-
 }

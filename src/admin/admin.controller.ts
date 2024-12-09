@@ -7,5 +7,4 @@ export class AdminController {
     constructor(private readonly adminService: AdminService) {
     }
 
-
 }
