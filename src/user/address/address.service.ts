@@ -19,18 +19,18 @@ export class AddressService {
         if (!user) {
             return errorResponse(404, 'User is not found or not registered')
         }
-        const address = new this.addressModel({
-            first_name: firstName,
-            last_name: lastName,
-            phone_number: phoneNumber,
-            user_id: user_id,
-            addressLine1: addressLine1,
-            addressLine2: addressLine2,
-            landmark: landmark,
-            city: city,
-            state: state,
-            pincode: pincode
-        });
+        
+        if (!firstName || !lastName || !phoneNumber || !user_id || !addressLine1 || !city || !state || !pincode) {
+            return errorResponse(400, 'Missing required fields');
+        }
+
+        const existingAddress = await this.addressModel.findOne({ phoneNumber: phoneNumber });
+        if (existingAddress) {
+            return errorResponse(400, 'Phone number already exists');
+        }
+
+        const address = new this.addressModel({firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode});
+    
         await address.save();
         return successResponse(201, "Address added")
     }

@@ -18,7 +18,7 @@ export class AddressController {
         return res.status(result.statusCode).json(result)
     }
 
-    @Get()
+    @Get(':id')
     async findAll(@Req() req: Request, @Res() res: Response) {
         const result = await this.addressService.findAll(req);
         return res.status(result.statusCode).json(result)
