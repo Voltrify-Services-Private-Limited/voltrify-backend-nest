@@ -67,7 +67,7 @@ export class Order extends Document {
         ],
         required: false
     })
-    components_change: { component_name: string; cost: number }[];
+    components_charge: { component_name: string; cost: number }[];
 
     @Prop({ type: Number, required: true })
     total_charges: number;
