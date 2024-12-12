@@ -37,23 +37,26 @@ export class AddressService {
     async update(req: any) {
         const {firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode} = req.body;
         const addressId:string = req.params.id
-
-        // Now we will check, Is user is registered in db or not
-        const userId = req.user.id
-        if(userId != req.body.id) {
-            return errorResponse(403, 'Not authorised')
+    
+        // const userId = req.user.id;
+        // if (userId !== user_id) {
+        //     return errorResponse(403, 'Not authorized to update this address');
+        // }
+        const address = await this.addressModel.findOne({ id: addressId });
+        if (!address) {
+            return errorResponse(404, 'Address not found');
         }
-        const address = await this.addressModel.findOne({id: addressId})
-        address['firstName'] = firstName
-        address['lastName'] = lastName
-        address['phoneNumber'] = phoneNumber
-        address['user_id'] = user_id
-        address['addressLine1'] = addressLine1
-        address['addressLine2'] = addressLine2
-        address['landmark'] = landmark
-        address['city'] = city
-        address['state'] = state
-        address['pincode'] = pincode
+        address.firstName = firstName || address.firstName;
+        address.lastName = lastName || address.lastName;
+        address.phoneNumber = phoneNumber || address.phoneNumber;
+        address.user_id = user_id || address.user_id;
+        address.addressLine1 = addressLine1 || address.addressLine1;
+        address.addressLine2 = addressLine2 || address.addressLine2;
+        address.landmark = landmark || address.landmark;
+        address.city = city || address.city;
+        address.state = state || address.state;
+        address.pincode = pincode || address.pincode;
+    
         await address.save();
         return successResponse(201, "Address updated")
     }
@@ -72,10 +75,10 @@ export class AddressService {
 
     async remove(req: any) {
         const addressId:string = req.params.id;
-        const userId = req.user.id
-        if(userId != req.body.id) {
-            return errorResponse(403, 'Not authorised')
-        }
+        // const userId = req.user.id
+        // if(userId != req.body.id) {
+        //     return errorResponse(403, 'Not authorised')
+        // }
         await this.addressModel.findOneAndDelete({id: addressId})
         return successResponse(200, "Address removed")
     }
