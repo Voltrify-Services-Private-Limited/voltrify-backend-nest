@@ -19,7 +19,7 @@ export class AddressService {
         if (!user) {
             return errorResponse(404, 'User is not found or not registered')
         }
-        
+
         if (!firstName || !lastName || !phoneNumber || !user_id || !addressLine1 || !city || !state || !pincode) {
             return errorResponse(400, 'Missing required fields');
         }
@@ -30,18 +30,14 @@ export class AddressService {
         }
 
         const address = new this.addressModel({firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode});
-    
+
         await address.save();
         return successResponse(201, "Address added")
     }
     async update(req: any) {
         const {firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode} = req.body;
         const addressId:string = req.params.id
-    
-        // const userId = req.user.id;
-        // if (userId !== user_id) {
-        //     return errorResponse(403, 'Not authorized to update this address');
-        // }
+
         const address = await this.addressModel.findOne({ id: addressId });
         if (!address) {
             return errorResponse(404, 'Address not found');
@@ -56,14 +52,14 @@ export class AddressService {
         address.city = city || address.city;
         address.state = state || address.state;
         address.pincode = pincode || address.pincode;
-    
+
         await address.save();
         return successResponse(201, "Address updated")
     }
 
     async findAll(req: Request) {
         const userId:string = req.params.id;
-        const addresses:any = await this.addressModel.find({user_id: userId})
+        const addresses:any = await this.addressModel.find()
         return successResponse(200, "All address of user", addresses)
     }
 
@@ -75,10 +71,6 @@ export class AddressService {
 
     async remove(req: any) {
         const addressId:string = req.params.id;
-        // const userId = req.user.id
-        // if(userId != req.body.id) {
-        //     return errorResponse(403, 'Not authorised')
-        // }
         await this.addressModel.findOneAndDelete({id: addressId})
         return successResponse(200, "Address removed")
     }
