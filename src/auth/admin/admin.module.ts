@@ -6,7 +6,7 @@ import {Admin, AdminSchema} from "../../models/admin.model";
 import {Otp, OtpSchema} from "../../models/otp.model";
 
 @Module({
-  imports: [
+    imports: [
         MongooseModule.forFeature([
             {name: Admin.name, schema: AdminSchema},
             {name: Otp.name, schema: OtpSchema}
