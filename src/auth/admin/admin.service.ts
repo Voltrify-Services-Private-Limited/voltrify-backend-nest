@@ -7,8 +7,7 @@ import {Model} from "mongoose";
 import {
     generateAccessToken,
     generateAdminRefreshToken,
-    generateRefreshToken, verifyAdminRefreshToken,
-    verifyRefreshToken
+    verifyAdminRefreshToken,
 } from "../../utils/jwt.util";
 import {Otp} from "../../models/otp.model";
 import {ConfigService} from "@nestjs/config";
