@@ -19,18 +19,18 @@ export class AddressService {
         if (!user) {
             return errorResponse(404, 'User is not found or not registered')
         }
-        const address = new this.addressModel({
-            first_name: firstName,
-            last_name: lastName,
-            phone_number: phoneNumber,
-            user_id: user_id,
-            addressLine1: addressLine1,
-            addressLine2: addressLine2,
-            landmark: landmark,
-            city: city,
-            state: state,
-            pincode: pincode
-        });
+
+        if (!firstName || !lastName || !phoneNumber || !user_id || !addressLine1 || !city || !state || !pincode) {
+            return errorResponse(400, 'Missing required fields');
+        }
+
+        const existingAddress = await this.addressModel.findOne({ phoneNumber: phoneNumber });
+        if (existingAddress) {
+            return errorResponse(400, 'Phone number already exists');
+        }
+
+        const address = new this.addressModel({firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode});
+
         await address.save();
         return successResponse(201, "Address added")
     }
@@ -38,29 +38,28 @@ export class AddressService {
         const {firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode} = req.body;
         const addressId:string = req.params.id
 
-        // Now we will check, Is user is registered in db or not
-        const userId = req.user.id
-        if(userId != req.body.id) {
-            return errorResponse(403, 'Not authorised')
+        const address = await this.addressModel.findOne({ id: addressId });
+        if (!address) {
+            return errorResponse(404, 'Address not found');
         }
-        const address = await this.addressModel.findOne({id: addressId})
-        address['firstName'] = firstName
-        address['lastName'] = lastName
-        address['phoneNumber'] = phoneNumber
-        address['user_id'] = user_id
-        address['addressLine1'] = addressLine1
-        address['addressLine2'] = addressLine2
-        address['landmark'] = landmark
-        address['city'] = city
-        address['state'] = state
-        address['pincode'] = pincode
+        address.firstName = firstName || address.firstName;
+        address.lastName = lastName || address.lastName;
+        address.phoneNumber = phoneNumber || address.phoneNumber;
+        address.user_id = user_id || address.user_id;
+        address.addressLine1 = addressLine1 || address.addressLine1;
+        address.addressLine2 = addressLine2 || address.addressLine2;
+        address.landmark = landmark || address.landmark;
+        address.city = city || address.city;
+        address.state = state || address.state;
+        address.pincode = pincode || address.pincode;
+
         await address.save();
         return successResponse(201, "Address updated")
     }
 
     async findAll(req: Request) {
         const userId:string = req.params.id;
-        const addresses:any = await this.addressModel.find({user_id: userId})
+        const addresses:any = await this.addressModel.find()
         return successResponse(200, "All address of user", addresses)
     }
 
@@ -72,10 +71,6 @@ export class AddressService {
 
     async remove(req: any) {
         const addressId:string = req.params.id;
-        const userId = req.user.id
-        if(userId != req.body.id) {
-            return errorResponse(403, 'Not authorised')
-        }
         await this.addressModel.findOneAndDelete({id: addressId})
         return successResponse(200, "Address removed")
     }
