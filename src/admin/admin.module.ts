@@ -16,6 +16,7 @@ import { DeviceController } from './Device/device.controller';
 import { VoltrifyDevicesController } from './VoltrifyDevices/voltrifydevicesController';
 import { VoltrifyDevicesService } from './VoltrifyDevices/voltrifydevices.service';
 import { DeviceConditionModule } from './device-condition/device-condition.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
     imports: [
@@ -29,6 +30,7 @@ import { DeviceConditionModule } from './device-condition/device-condition.modul
             {name: Service.name, schema: ServiceSchema}
         ]),
         DeviceConditionModule,
+        ServiceModule,
 
         
     ],
