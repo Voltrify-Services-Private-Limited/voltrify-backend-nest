@@ -8,7 +8,6 @@ import {AuthModule} from './auth/auth.module';
 import {OtpModule} from './otp/otp.module';
 import {NotificationModule} from './notification/notification.module';
 import * as process from "node:process";
-import { ServiceModule } from './service/service.module';
 import { AdminModule } from './admin/admin.module';
 
 @Module({
@@ -22,7 +21,6 @@ import { AdminModule } from './admin/admin.module';
         AuthModule,
         OtpModule,
         NotificationModule,
-        ServiceModule,
         AdminModule,
     ],
     controllers: [AppController],
