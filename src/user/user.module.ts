@@ -4,11 +4,13 @@ import { UserService } from './user.service';
 import {User, UserSchema} from "../models/user.model";
 import {MongooseModule} from "@nestjs/mongoose";
 import { AddressModule } from './address/address.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
       MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       AddressModule,
+      CartModule
   ],
   controllers: [UserController],
   providers: [UserService],

@@ -10,8 +10,11 @@ export class Cart extends Document {
     @Prop({ type: String, required: true, ref: 'Service' })
     service_id: string;
 
-    @Prop({ type: String, required: true, ref: 'User'})
+    @Prop({ type: String, required: true, ref: 'User' })
     user_id: string;
+
+    @Prop({ type: Date, default: null })
+    deleted_at: Date | null;
 }
 
 export const CartSchema = SchemaFactory.createForClass(Cart);

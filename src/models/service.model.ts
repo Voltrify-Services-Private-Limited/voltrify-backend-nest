@@ -21,8 +21,18 @@ export class Service extends Document {
 
     @Prop({type: Number, required: true})
     visiting_charge: number;
+
+    @Prop({type: [String], required: true})
+    city: string[];
 }
 
 export const ServiceSchema = SchemaFactory.createForClass(Service);
 
 ServiceSchema.index({id: 1}, {unique: true});
+
+ServiceSchema.pre('save', function (next) {
+    if (this.city && Array.isArray(this.city)) {
+      this.city = this.city.map((c) => c.toLowerCase());
+    }
+    next();
+  });
