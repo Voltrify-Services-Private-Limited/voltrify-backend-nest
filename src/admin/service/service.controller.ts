@@ -13,13 +13,13 @@ export class ServiceController {
         return res.status(result.statusCode).json(result)
     }
 
-    @Get(':id')
+    @Get(':condition')
     async findOne(@Req() req: Request, @Res() res: Response) {
         const result = await this.ServiceService.findOne(req);
         return res.status(result.statusCode).json(result)
     }
 
-    @Patch()
+    @Patch(':id')
     async update(@Req() req: Request, @Res() res: Response) {
         const result = await this.ServiceService.update(req);
         return res.status(result.statusCode).json(result)
