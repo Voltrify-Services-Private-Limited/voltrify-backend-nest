@@ -17,6 +17,11 @@ import { VoltrifyDevicesController } from './VoltrifyDevices/voltrifydevicesCont
 import { VoltrifyDevicesService } from './VoltrifyDevices/voltrifydevices.service';
 import { DeviceConditionModule } from './device-condition/device-condition.module';
 import { ServiceModule } from './service/service.module';
+import { Coupon, CouponSchema } from 'src/models/coupon.model';
+import { AdminCouponController } from '../admin/coupon/coupon.controller';
+import { AdminCouponService } from '../admin/coupon/coupon.service';
+
+
 
 @Module({
     imports: [
@@ -27,15 +32,17 @@ import { ServiceModule } from './service/service.module';
             {name: DeviceCondition.name, schema: DeviceConditionSchema},
             {name: VoltrifyDevices.name, schema: VoltrifyDevicesSchema},
             {name: Order.name, schema: OrderSchema},
-            {name: Service.name, schema: ServiceSchema}
+            {name: Service.name, schema: ServiceSchema},
+            {name: Coupon.name, schema: CouponSchema}
+
         ]),
         DeviceConditionModule,
         ServiceModule,
 
         
     ],
-    controllers: [AdminController,CategoryController,DeviceController,VoltrifyDevicesController],
-    providers: [AdminService,CategoryService,DeviceService,VoltrifyDevicesService],
+    controllers: [AdminController,CategoryController,DeviceController,VoltrifyDevicesController,AdminCouponController],
+    providers: [AdminService,CategoryService,DeviceService,VoltrifyDevicesService,AdminCouponService],
     
 })
 export class AdminModule {
