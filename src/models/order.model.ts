@@ -1,6 +1,7 @@
 import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import {Document} from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
+import { ServiceType } from '../utils/types/service-type.enum';
 
 @Schema({timestamps: true})
 export class Order extends Document {
@@ -16,11 +17,11 @@ export class Order extends Document {
     @Prop({type: String, required: true, ref: 'Device'})
     device_id: string;
 
-    @Prop({ type: String, required: true })
-    service_type: string;
+    @Prop({type: String, required: true, ref: 'Service'})
+    service_id: string;
 
-    @Prop({ type: String, required: false })
-    service_details: string;
+    @Prop({ type: String, enum: ServiceType, required: true })
+    service_type: ServiceType;
 
     @Prop({type: String, required: false, ref: 'DeviceCondition'})
     condition_id: string;
@@ -40,7 +41,7 @@ export class Order extends Document {
     @Prop({ type: String, required: true, enum: ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'], default: 'pending' })
     status: string;
 
-    @Prop({ type: String, required: true, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' })
+    @Prop({ type: String, required: true, enum: ['pending', 'unpaid', 'paid', 'refunded'], default: 'pending' })
     payment_status: string;
 
     @Prop({ type: String, required: true, enum: ['on-site', 'online'] })

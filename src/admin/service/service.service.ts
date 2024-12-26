@@ -4,34 +4,36 @@ import {errorResponse, successResponse} from "../../utils/response.util";
 import {InjectModel} from "@nestjs/mongoose";
 import {Service} from "../../models/service.model";
 import {Model} from "mongoose";
+import { ServiceType } from 'src/utils/types/service-type.enum';
 
 @Injectable()
 export class ServiceService {
     constructor(
         @InjectModel(Service.name) private ServiceModel: Model<Service>
-    ) {
-    }
-    private async aggregateServiceData(condition?: string, filters?: any) {
+    ) {}
+
+    private aggregateServiceData(condition?: string, filters?: any) {
         const pipeline: any[] = [];
-            if (condition) {
+        if (condition) {
             pipeline.push({
                 $match: {
                     $or: [
                         { device_id: condition },
                         { name: condition },
                         { id: condition },
-                        { city: condition } 
+                        { city: condition },
+                        { type: condition }
                     ]
                 }
             });
         }
-    
+
         if (filters) {
             pipeline.push({
                 $match: filters
             });
         }
-    
+
         pipeline.push(
             {
                 $lookup: {
@@ -56,43 +58,56 @@ export class ServiceService {
                     price: 1,
                     visitingCharge: '$visiting_charge',
                     description: 1,
-                    city: 1
+                    city: 1,
+                    type: 1,            
+                    duration: 1         
                 },
             }
         );
-        return this.ServiceModel.aggregate(pipeline).exec();
-    }  
-    async create(req: Request) {
-        const {deviceId, name, description, visitingCharge, price,city} = req.body;
 
-        if (!deviceId || !name || !visitingCharge || !price || !city) {
-            return errorResponse(400, "All required fields (deviceId, name, visitingCharge, price, city) must be provided");
+        return this.ServiceModel.aggregate(pipeline).exec();
+    }
+
+    async create(req: Request) {
+        const { deviceId, name, description, visitingCharge, price, city, type ,duration} = req.body;
+
+        if (!deviceId || !name || !visitingCharge || !price || !city || !type) {
+            return errorResponse(400, "All required fields (deviceId, name, visitingCharge, price, city, type) must be provided");
         }
-        const deviceCondition = new this.ServiceModel({
+
+        if (!Object.values(ServiceType).includes(type)) {
+            return errorResponse(400, `'${type}' is not a valid type.`);
+        }
+
+        const newService = new this.ServiceModel({
             device_id: deviceId,
             name: name,
             description: description,
             price: price,
             visiting_charge: visitingCharge,
-            city: Array.isArray(city) ? city : [city]
-        })
-        await deviceCondition.save();
+            city: Array.isArray(city) ? city : [city],
+            type: type,
+            duration: duration
+        });
+
+        await newService.save(); 
         return successResponse(201, "Service added");
     }
 
     async findAll(req: Request) {
-        const services:any = await this.aggregateServiceData();
+        const services = await this.aggregateServiceData(); 
         return successResponse(200, "Devices data", services);
     }
 
     async findOne(req: Request) {
-        const condition:string = req.params.condition;
-        const { city, servicename } = req.query;
+        const condition: string = req.params.condition;
+        const { city, servicename,type} = req.query;
         const filters: any = {};
         if (city) filters.city = city;
         if (servicename) filters.name = servicename;
+        if (type) filters.type = type;
 
-        const service:any = await this.aggregateServiceData(condition);
+        const service = await this.aggregateServiceData(condition, filters);
         if (!service || service.length === 0) {
             return errorResponse(404, "No matching service found");
         }
@@ -100,18 +115,22 @@ export class ServiceService {
     }
 
     async update(req: Request) {
-        const {deviceId, name, description, visitingCharge, price, city} = req.body;
+        const { deviceId, name, description, visitingCharge, price, city, type,duration } = req.body;
         const id = req.params.id;
-        const service: any = await this.ServiceModel.findOne({ id: id })
-        if(!service) {
+
+        const service = await this.ServiceModel.findOne({ id: id });
+        if (!service) {
             return errorResponse(404, `Service id ${id} not found`);
         }
-        service.device_id = deviceId || service.device_id
-        service.name = name || service.name
-        service.description = description || service.description
-        service.price = price || service.price
-        service.visiting_charge = visitingCharge || service.visiting_charge
-        service.city = city || service.city
+
+        service.device_id = deviceId || service.device_id;
+        service.name = name || service.name;
+        service.description = description || service.description;
+        service.price = price || service.price;
+        service.visiting_charge = visitingCharge || service.visiting_charge;
+        service.city = city || service.city;
+        service.type = type || service.type;
+        service.duration = duration || service.duration;
 
         await service.save();
         return successResponse(200, "Service updated")
