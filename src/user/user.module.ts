@@ -7,6 +7,7 @@ import { AddressModule } from './address/address.module';
 import { CartModule } from './cart/cart.module';
 import { CouponsModule } from './coupon/coupons.module';
 import { OrderModule } from './order/order.module';
+import { cardModule } from './card/card.module';
 
 @Module({
   imports: [
@@ -14,7 +15,8 @@ import { OrderModule } from './order/order.module';
       AddressModule,
       CartModule,
       CouponsModule,
-      OrderModule
+      OrderModule,
+      cardModule
       
   ],
   controllers: [UserController],

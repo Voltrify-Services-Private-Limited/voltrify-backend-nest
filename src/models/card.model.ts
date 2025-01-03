@@ -13,7 +13,7 @@ export class Card {
     cardId: string;
 
     @Prop({ required: true })
-    ownerId: string;
+    userId: string;
 
     @Prop({ required: true, enum: ['DISCOUNT', 'MEMBERSHIP'] })
     type: string;

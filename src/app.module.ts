@@ -10,7 +10,6 @@ import {NotificationModule} from './notification/notification.module';
 import * as process from "node:process";
 import { AdminModule } from './admin/admin.module';
 import { PaymentModule } from './payment/payment.module';
-import { cardModule } from './card/card.module';
 
 @Module({
     imports: [
@@ -25,7 +24,6 @@ import { cardModule } from './card/card.module';
         NotificationModule,
         AdminModule,
         PaymentModule,
-        cardModule,
     ],
     controllers: [AppController],
     providers: [AppService],
