@@ -5,28 +5,35 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Order } from "../../models/order.model";
 import { Model } from "mongoose";
 import { Service } from '../../models/service.model';
+import {Cart} from "../../models/cart.model";
 
 @Injectable()
 export class OrderService {
     constructor(
         @InjectModel(Order.name) private OrderModel: Model<Order>,
         @InjectModel(Service.name) private ServiceModel: Model<Service>,
+        @InjectModel(Cart.name) private CartModel: Model<Cart>,
     ) {}
 
     // Create a new order with calculations and service details
     async create(req: any) {
         try {
             const userId = req.user.id
-            const serviceId = req.body.service_id
+            const cartId = req.body.cart_id
             const addressId = req.body.address_id
             const deviceId = req.body.device_id
             const conditionId = req.body.condition_id
             const timeSlot = req.body.time_slot
             const couponsCode = req.body.coupons_code
             const paymentMode = req.body.payment_mode
+            const userDescription = req.body.service_description
 
+            const cart = await this.CartModel.findOne({ id: cartId, user_id: userId, deleted_at: null })
+            if (!cart) {
+                return errorResponse(404, "Cart not found");
+            }
             // Fetch related data from Service model based on service_id
-            const service = await this.ServiceModel.findById(serviceId);
+            const service = await this.ServiceModel.findOne({ id: cart.id})
             if (!service) {
                 return errorResponse(404, "Service not found");
             }
@@ -46,7 +53,8 @@ export class OrderService {
                 user_id: userId,
                 address_id: addressId,
                 device_id: deviceId,
-                service_id: serviceId,
+                user_description: userDescription,
+                service_id: service.id,
                 service_duration: serviceDuration,
                 service_type: serviceType,
                 condition_id: conditionId,
