@@ -28,6 +28,7 @@ export class AddressController {
     }
 
     @Get(':id')
+    @UseGuards(AuthGuard)
     async findOne(@Req() req: Request, @Res() res: Response) {
         const result = await this.addressService.findOne(req);
         return res.status(result.statusCode).json(result)
