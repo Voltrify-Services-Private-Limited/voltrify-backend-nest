@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { Request } from "express";
-import { errorResponse, successResponse } from "../../utils/response.util";
-import { InjectModel } from "@nestjs/mongoose";
-import { Order } from "../../models/order.model";
-import { Model } from "mongoose";
-import { Service } from '../../models/service.model';
+import {Injectable} from '@nestjs/common';
+import {Request} from "express";
+import {errorResponse, successResponse} from "../../utils/response.util";
+import {InjectModel} from "@nestjs/mongoose";
+import {Order} from "../../models/order.model";
+import {Model} from "mongoose";
+import {Service} from '../../models/service.model';
 import {Cart} from "../../models/cart.model";
+import {Payment} from "../../models/payment.model";
+import {PaymentService} from "../../payment/payment.service"
+import {v4 as uuidv4} from 'uuid';
 
 @Injectable()
 export class OrderService {
@@ -13,69 +16,103 @@ export class OrderService {
         @InjectModel(Order.name) private OrderModel: Model<Order>,
         @InjectModel(Service.name) private ServiceModel: Model<Service>,
         @InjectModel(Cart.name) private CartModel: Model<Cart>,
-    ) {}
+        @InjectModel(Payment.name) private PaymentModel: Model<Payment>,
+        private readonly paymentService: PaymentService
+    ) {
+    }
 
     // Create a new order with calculations and service details
     async create(req: any) {
-        try {
-            const userId = req.user.id
-            const cartId = req.body.cart_id
-            const addressId = req.body.address_id
-            const deviceId = req.body.device_id
-            const conditionId = req.body.condition_id
-            const timeSlot = req.body.time_slot
-            const couponsCode = req.body.coupons_code
-            const paymentMode = req.body.payment_mode
-            const userDescription = req.body.service_description
+        console.log("in service file")
+        const userId = req.user.id
+        const cartId = req.body.cart_id
+        const addressId = req.body.address_id
 
-            const cart = await this.CartModel.findOne({ id: cartId, user_id: userId, deleted_at: null })
-            if (!cart) {
-                return errorResponse(404, "Cart not found");
-            }
-            // Fetch related data from Service model based on service_id
-            const service = await this.ServiceModel.findOne({ id: cart.id})
-            if (!service) {
-                return errorResponse(404, "Service not found");
-            }
+        const conditionId = req.body.condition_id
+        const timeSlot = req.body.time_slot
+        const couponsCode = req.body.coupons_code
+        const paymentMode = req.body.payment_mode
+        const userDescription = req.body.service_description
 
-            // Perform necessary calculations
-            const serviceDuration = service.duration;
-            const serviceType = service.type;
-            const visitingCharge = service.visiting_charge;
-            const serviceCharge = service.price;
-            const totalCharges = visitingCharge + (serviceCharge || 0);
-            // const gst = (totalCharges - discount) * 0.18; // Assuming 18% GST
-            // const finalAmount = totalCharges - discount + gst;
-            const finalAmount = totalCharges;
-
-            // Prepare the order data
-            const newOrder = new this.OrderModel({
-                user_id: userId,
-                address_id: addressId,
-                device_id: deviceId,
-                user_description: userDescription,
-                service_id: service.id,
-                service_duration: serviceDuration,
-                service_type: serviceType,
-                condition_id: conditionId,
-                time_slot: timeSlot,
-                payment_mode: paymentMode,
-                coupons_code: couponsCode,
-                visiting_charge: visitingCharge,
-                service_charge: serviceCharge,
-                total_charges: totalCharges,
-                // discount: discount,
-                // total_gst: gst,
-                final_amount: finalAmount,
-                created_by: userId,
-            });
-
-            // Save the order
-            await newOrder.save();
-            return successResponse(201, "Order Created", newOrder);
-        } catch (error) {
-            return errorResponse(500, "Error while creating the order", error);
+        console.log("check-0.1")
+        const cart = await this.CartModel.findOne({id: cartId, user_id: userId, deleted_at: null})
+        if (!cart) {
+            return errorResponse(404, "Cart not found");
         }
+        console.log("check-0.2")
+        // Fetch related data from Service model based on service_id
+        const service = await this.ServiceModel.findOne({id: cart.service_id})
+        if (!service) {
+            return errorResponse(404, "Service not found");
+        }
+
+        // Perform necessary calculations
+        const deviceId = service.device_id
+        const serviceDuration = service.duration;
+        const serviceType = service.type;
+        const visitingCharge = service.visiting_charge;
+        const serviceCharge = service.price;
+        const totalCharges = visitingCharge + (serviceCharge || 0);
+        // const gst = (totalCharges - discount) * 0.18; // Assuming 18% GST
+        // const finalAmount = totalCharges - discount + gst;
+        const finalAmount = totalCharges;
+        const orderId = uuidv4()
+
+        // Prepare the order data
+        console.log("check-0")
+        const newOrder = new this.OrderModel({
+            id: orderId,
+            user_id: userId,
+            address_id: addressId,
+            device_id: deviceId,
+            user_description: userDescription,
+            service_id: service.id,
+            service_duration: serviceDuration,
+            service_type: serviceType,
+            condition_id: conditionId,
+            time_slot: timeSlot,
+            payment_mode: paymentMode,
+            coupons_code: couponsCode,
+            visiting_charge: visitingCharge,
+            service_charge: serviceCharge,
+            total_charges: totalCharges,
+            // discount: discount,
+            // total_gst: gst,
+            final_amount: finalAmount,
+            created_by: userId,
+        });
+        console.log("check-1")
+        // Save the order
+        await newOrder.save();
+        console.log("check-2")
+        console.log("till here")
+        const paymentOrder = await this.paymentService.createOrder(finalAmount, orderId)
+        console.log("this is razorpay order: ", paymentOrder)
+        // {x
+//     amount: 85000,
+//     amount_due: 85000,
+//     amount_paid: 0,
+//     attempts: 0,
+//     created_at: 1735689514,
+//     currency: 'INR',
+//     entity: 'order',
+//     id: 'order_PdyOSfyBYo3knw',
+//     notes: [],
+//     offer_id: null,
+//     receipt: '0edd0c91-1d2c-4bb0-a332-9a21d31b4df3',
+//     status: 'created'
+// }
+        const payment = new this.PaymentModel({
+            payment_id: paymentOrder.id,
+            user_id: userId,
+            order_id: paymentOrder.receipt,
+            amount: paymentOrder.amount,
+            status: paymentOrder.status,
+            payment_created_at: paymentOrder.created_at,
+            payment_response: paymentOrder
+        })
+        await payment.save();
+        return successResponse(201, "Order Created", newOrder);
     }
 
     // // Get all orders or a specific order by ID with related data

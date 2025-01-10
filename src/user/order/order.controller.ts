@@ -11,6 +11,7 @@ export class OrderController {
     // Create an order
     @Post()
     async create(@Req() req: Request, @Res() res: Response) {
-        return this.orderService.create(req);
+        const result =  await this.orderService.create(req);
+        return res.status(result.statusCode).json(result)
     }
 }

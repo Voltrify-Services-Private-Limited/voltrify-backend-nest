@@ -17,9 +17,6 @@ export class UserService {
     }
     async update(req: any){
         const userId = req.user.id
-        if(userId != req.body.id) {
-            return errorResponse(403, 'Not authorised')
-        }
         const user = await this.userModel.findOne({id: userId})
         if(!user){
             return errorResponse(404, 'User not found')

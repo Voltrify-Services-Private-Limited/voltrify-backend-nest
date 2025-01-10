@@ -13,10 +13,10 @@ export class PaymentService {
         });
     }
 
-    async createOrder(amount: number, currency: string, receipt: string) {
+    async createOrder(amount: number, receipt: string) {
         const options = {
             amount: amount * 100, // Razorpay works with paise, not rupees
-            currency,
+            currency: "INR",
             receipt,
         };
         const order = await this.razorpay.orders.create(options);
