@@ -28,6 +28,13 @@ export class CardController {
         const result = await this.cardService.getUserCards(userId);
         return res.status(result.statusCode).json(result);
     }
+
+    @Get('card/:cardId')
+    @UseGuards(AuthGuard)
+    async getUserCard(@Param('cardId') cardId: string, @Res() res: Response) {
+        const result = await this.cardService.getUserCard(cardId);
+        return res.status(result.statusCode).json(result);
+    }
    
     @Put('deactivate/:cardId')
     @UseGuards(AuthGuard)

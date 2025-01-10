@@ -45,6 +45,11 @@ export class CardService {
         return successResponse(200, 'User cards fetched successfully', cards);
     }
 
+    async getUserCard(cardId: string) {
+        const card = await this.cardModel.findOne({ cardId }).select('-_id').exec();
+        return successResponse(200, 'User cardId fetched successfully', card);
+    }
+
     async deactivateCard(cardId: string) {
         const card = await this.cardModel.findOneAndUpdate(
             { cardId },
