@@ -14,4 +14,17 @@ export class OrderController {
         const result =  await this.orderService.create(req);
         return res.status(result.statusCode).json(result)
     }
+
+    @Get()
+    async getAllOrders(@Req() req: Request, @Res() res: Response) {
+        const result = await this.orderService.getAllOrders();
+        return res.status(result.statusCode).json(result);
+    }
+
+    @Get(':orderId')
+    async getOrderById(@Param('orderId') orderId: string, @Res() res: Response) {
+        const result = await this.orderService.getOrderById(orderId);
+        return res.status(result.statusCode).json(result);
+    }
+
 }

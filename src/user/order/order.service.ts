@@ -124,6 +124,10 @@ export class OrderService {
     //         return errorResponse(500, "Error fetching orders", error);
     //     }
     // }
+    async getAllOrders() {
+        const orders = await this.OrderModel.find();
+        return successResponse(200, "Orders fetched successfully", orders);
+    }    
     //
     // // Get a specific order by ID with related data
     // async getOrderById(orderId: string) {
@@ -138,6 +142,14 @@ export class OrderService {
     //     }
     // }
     //
+    async getOrderById(orderId: string) {
+        // Use the `id` field (UUID) for querying
+        const order = await this.OrderModel.findOne({ id: orderId }); 
+          if (!order) {
+            return errorResponse(404, "Order not found");
+        }   
+        return successResponse(200, "Order fetched successfully", order);
+    }    
     // // Update an existing order with recalculations
     // async updateOrder(orderId: string, req: Request) {
     //     try {
