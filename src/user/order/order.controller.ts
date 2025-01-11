@@ -27,4 +27,21 @@ export class OrderController {
         return res.status(result.statusCode).json(result);
     }
 
+    @Put(':orderId')
+    async updateOrder(@Param('orderId') orderId: string,@Body() updateOrderData: any,@Res() res: Response) {
+        const result = await this.orderService.updateOrder(orderId, updateOrderData);
+        return res.status(result.statusCode).json(result);  
+    }
+
+    @Put('cancel/:orderId')
+    async cancelOrder( @Param('orderId') orderId: string,@Res() res: Response ) {
+        const result = await this.orderService.cancelOrder(orderId);
+        return res.status(result.statusCode).json(result);
+    }
+
+    @Put('reschedule/:orderId')
+    async rescheduleOrder(@Param('orderId') orderId: string, @Body() updateOrderData: any,  @Res() res: Response) {
+        const result = await this.orderService.rescheduleOrder(orderId, updateOrderData);
+        return res.status(result.statusCode).json(result);
+    }
 }

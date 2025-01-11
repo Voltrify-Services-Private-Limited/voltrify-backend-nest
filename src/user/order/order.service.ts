@@ -115,100 +115,115 @@ export class OrderService {
         return successResponse(201, "Order Created", newOrder);
     }
 
-    // // Get all orders or a specific order by ID with related data
-    // async getAllOrders() {
-    //     try {
-    //         const orders = await this.OrderModel.find().populate('service_id user_id');
-    //         return successResponse(200, "Orders fetched successfully", orders);
-    //     } catch (error) {
-    //         return errorResponse(500, "Error fetching orders", error);
-    //     }
-    // }
+
     async getAllOrders() {
         const orders = await this.OrderModel.find();
         return successResponse(200, "Orders fetched successfully", orders);
     }    
-    //
-    // // Get a specific order by ID with related data
-    // async getOrderById(orderId: string) {
-    //     try {
-    //         const order = await this.OrderModel.findById(orderId).populate('service_id user_id');
-    //         if (!order) {
-    //             return errorResponse(404, "Order not found");
-    //         }
-    //         return successResponse(200, "Order fetched successfully", order);
-    //     } catch (error) {
-    //         return errorResponse(500, "Error fetching order", error);
-    //     }
-    // }
-    //
+   
     async getOrderById(orderId: string) {
-        // Use the `id` field (UUID) for querying
         const order = await this.OrderModel.findOne({ id: orderId }); 
           if (!order) {
             return errorResponse(404, "Order not found");
         }   
         return successResponse(200, "Order fetched successfully", order);
-    }    
-    // // Update an existing order with recalculations
-    // async updateOrder(orderId: string, req: Request) {
-    //     try {
-    //         const order = await this.OrderModel.findById(orderId);
-    //         if (!order) {
-    //             return errorResponse(404, "Order not found");
-    //         }
-    //
-    //         const {
-    //             service_id,
-    //             visiting_charge,
-    //             service_charge,
-    //             components_charge,
-    //             discount,
-    //             time_slot,
-    //             status,
-    //             payment_status,
-    //             payment_mode,
-    //             coupons_code,
-    //             store_id,
-    //             technician_id,
-    //             notes,
-    //             updated_by
-    //         } = req.body;
-    //
-    //         // Fetch related service and components
-    //         const service = await this.ServiceModel.findById(service_id || order.service_id);
-    //         // Perform necessary recalculations
-    //         const serviceDuration = service.duration;
-    //         // const serviceDetails = service.details;
-    //         const serviceType = service.type;
-    //         const totalCharges = visiting_charge + (service_charge || 0);
-    //         const gst = (totalCharges - discount) * 0.18; // Assuming 18% GST
-    //         const finalAmount = totalCharges - discount + gst;
-    //
-    //         // Update the order data
-    //         const updatedOrder = await this.OrderModel.findByIdAndUpdate(orderId, {
-    //             service_id,
-    //             service_duration: serviceDuration,
-    //             service_type: serviceType,
-    //             time_slot,
-    //             status: status || order.status,
-    //             payment_status: payment_status || order.payment_status,
-    //             payment_mode,
-    //             payment_method: req.body.payment_method || order.payment_method,
-    //             coupons_code,
-    //             store_id,
-    //             technician_id,
-    //             notes,
-    //             updated_by,
-    //             total_charges: totalCharges,
-    //             discount,
-    //             total_gst: gst,
-    //             final_amount: finalAmount,
-    //             components_charge: components_charge || order.components_charge,
-    //         }, { new: true });
-    //         return successResponse(200, "Order updated successfully", updatedOrder);
-    //     } catch (error) {
-    //         return errorResponse(500, "Error updating the order", error);
-    //     }
-    // }
-}
+    }  
+
+
+    async updateOrder(orderId: string, updateOrderData: any) {
+        console.log("Request body in service:", updateOrderData); 
+    
+        const { service_id, visiting_charge, service_charge, components_charge, discount, time_slot, status, payment_status, payment_mode, coupons_code, store_id, technician_id, notes, updated_by } = updateOrderData || {};
+        console.log('Service ID from body:', service_id);
+    
+        if (!service_id) {
+            return errorResponse(400, "Service ID is required");
+        }
+    
+        // Check if the order exists
+        const order = await this.OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return errorResponse(404, "Order not found");
+        }
+    
+        // Fetch related service and perform recalculations
+        const service = await this.ServiceModel.findOne({ id: service_id });
+        if (!service) {
+            return errorResponse(404, "Service not found");
+        }
+    
+        const serviceDuration = service.duration;
+        const serviceType = service.type;
+    
+        // Ensure that the charge fields are numbers
+        const visitingCharge = Number(visiting_charge) || 0;
+        const serviceCharge = Number(service_charge) || 0;
+        const totalCharges = visitingCharge + serviceCharge;
+    
+        // Validate and calculate GST (if discount exists)
+        const validDiscount = Number(discount) || 0;
+        const gst = (totalCharges - validDiscount) * 0.18; // Assuming 18% GST
+        const finalAmount = totalCharges - validDiscount + gst;
+    
+        // Update the order data with recalculated values
+        const updatedOrder = await this.OrderModel.findOneAndUpdate(
+            { id: orderId },
+            {
+                service_id,
+                service_duration: serviceDuration,
+                service_type: serviceType,
+                time_slot,
+                status: status || order.status,
+                payment_status: payment_status || order.payment_status,
+                payment_mode,
+                coupons_code,
+                store_id,
+                technician_id,
+                notes,
+                updated_by,
+                total_charges: totalCharges,
+                discount: validDiscount,
+                total_gst: gst,
+                final_amount: finalAmount,
+                components_charge: components_charge || order.components_charge,
+            },
+            { new: true }
+        );
+        
+        return successResponse(200, "Order updated successfully", updatedOrder);
+    }
+
+    async cancelOrder(orderId: string) {
+        const order = await this.OrderModel.findOne({ id: orderId });
+    
+        if (!order) {
+            return errorResponse(404, 'Order not found');
+        }
+        const updatedOrder = await this.OrderModel.findOneAndUpdate(
+            { id: orderId },
+            { status: 'cancelled' },
+            { new: true }
+        );
+        return successResponse(200, 'Order cancelled successfully', updatedOrder);
+    }
+    
+
+    async rescheduleOrder(orderId: string, updateOrderData: any) {
+        const { time_slot } = updateOrderData;
+    
+        const order = await this.OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return errorResponse(404, 'Order not found');
+        }
+        if (!time_slot) {
+            return errorResponse(400, 'New time slot is required');
+        }
+        const updatedOrder = await this.OrderModel.findOneAndUpdate(
+            { id: orderId },
+            { time_slot: time_slot },
+            { new: true }
+        );
+        return successResponse(200, 'Order rescheduled successfully', updatedOrder);
+    }
+    
+}    
