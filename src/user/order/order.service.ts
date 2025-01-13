@@ -89,19 +89,19 @@ export class OrderService {
         const paymentOrder = await this.paymentService.createOrder(finalAmount, orderId)
         console.log("this is razorpay order: ", paymentOrder)
         // {x
-//     amount: 85000,
-//     amount_due: 85000,
-//     amount_paid: 0,
-//     attempts: 0,
-//     created_at: 1735689514,
-//     currency: 'INR',
-//     entity: 'order',
-//     id: 'order_PdyOSfyBYo3knw',
-//     notes: [],
-//     offer_id: null,
-//     receipt: '0edd0c91-1d2c-4bb0-a332-9a21d31b4df3',
-//     status: 'created'
-// }
+        //     amount: 85000,
+        //     amount_due: 85000,
+        //     amount_paid: 0,
+        //     attempts: 0,
+        //     created_at: 1735689514,
+        //     currency: 'INR',
+        //     entity: 'order',
+        //     id: 'order_PdyOSfyBYo3knw',
+        //     notes: [],
+        //     offer_id: null,
+        //     receipt: '0edd0c91-1d2c-4bb0-a332-9a21d31b4df3',
+        //     status: 'created'
+        // }
         const payment = new this.PaymentModel({
             payment_id: paymentOrder.id,
             user_id: userId,
@@ -119,98 +119,83 @@ export class OrderService {
     async getAllOrders() {
         const orders = await this.OrderModel.find();
         return successResponse(200, "Orders fetched successfully", orders);
-    }    
-   
-    async getOrderById(orderId: string) {
-        const order = await this.OrderModel.findOne({ id: orderId }); 
-          if (!order) {
-            return errorResponse(404, "Order not found");
-        }   
-        return successResponse(200, "Order fetched successfully", order);
-    }  
+    }
 
+    async getOrderById(orderId: string) {
+        const order = await this.OrderModel.findOne({ id: orderId });
+        if (!order) {
+            return errorResponse(404, 'Order not found');
+        }
+        const payment = await this.PaymentModel.findOne({ order_id: orderId });
+
+        if (!payment) {
+            return errorResponse(404, 'Payment not found for this order');
+        }
+
+        return successResponse(200, 'Order details fetched successfully', {
+            order,
+            payment: {
+                payment_id: payment.payment_id,
+                status: payment.status,
+                amount: payment.amount
+            }
+        });
+    }
 
     async updateOrder(orderId: string, updateOrderData: any) {
-        console.log("Request body in service:", updateOrderData); 
-    
-        const { service_id, visiting_charge, service_charge, components_charge, discount, time_slot, status, payment_status, payment_mode, coupons_code, store_id, technician_id, notes, updated_by } = updateOrderData || {};
-        console.log('Service ID from body:', service_id);
-    
-        if (!service_id) {
-            return errorResponse(400, "Service ID is required");
+        const { address_id, user_description, condition_id } = updateOrderData || {};
+
+        if (!address_id && !user_description && !condition_id) {
+            return errorResponse(400, "At least one field (address_id, user_description, or condition_id) is required");
         }
-    
-        // Check if the order exists
         const order = await this.OrderModel.findOne({ id: orderId });
         if (!order) {
             return errorResponse(404, "Order not found");
         }
-    
-        // Fetch related service and perform recalculations
-        const service = await this.ServiceModel.findOne({ id: service_id });
-        if (!service) {
-            return errorResponse(404, "Service not found");
-        }
-    
-        const serviceDuration = service.duration;
-        const serviceType = service.type;
-    
-        // Ensure that the charge fields are numbers
-        const visitingCharge = Number(visiting_charge) || 0;
-        const serviceCharge = Number(service_charge) || 0;
-        const totalCharges = visitingCharge + serviceCharge;
-    
-        // Validate and calculate GST (if discount exists)
-        const validDiscount = Number(discount) || 0;
-        const gst = (totalCharges - validDiscount) * 0.18; // Assuming 18% GST
-        const finalAmount = totalCharges - validDiscount + gst;
-    
-        // Update the order data with recalculated values
         const updatedOrder = await this.OrderModel.findOneAndUpdate(
             { id: orderId },
             {
-                service_id,
-                service_duration: serviceDuration,
-                service_type: serviceType,
-                time_slot,
-                status: status || order.status,
-                payment_status: payment_status || order.payment_status,
-                payment_mode,
-                coupons_code,
-                store_id,
-                technician_id,
-                notes,
-                updated_by,
-                total_charges: totalCharges,
-                discount: validDiscount,
-                total_gst: gst,
-                final_amount: finalAmount,
-                components_charge: components_charge || order.components_charge,
+                ...(address_id && { address_id }),
+                ...(user_description && { user_description }),
+                ...(condition_id && { condition_id }),
             },
             { new: true }
         );
-        
+
         return successResponse(200, "Order updated successfully", updatedOrder);
     }
 
     async cancelOrder(orderId: string) {
         const order = await this.OrderModel.findOne({ id: orderId });
-    
+
         if (!order) {
             return errorResponse(404, 'Order not found');
         }
+        const payment = await this.PaymentModel.findOne({ order_id: orderId });
+
+        if (!payment) {
+            return errorResponse(404, 'Payment not found for this order');
+        }
+
         const updatedOrder = await this.OrderModel.findOneAndUpdate(
             { id: orderId },
             { status: 'cancelled' },
             { new: true }
         );
-        return successResponse(200, 'Order cancelled successfully', updatedOrder);
+
+        return successResponse(200, 'Order cancelled successfully', {
+            order: updatedOrder,
+            payment: {
+                payment_id: payment.payment_id, // Payment or transaction ID
+                status: payment.status,
+                amount: payment.amount
+            }
+        });
     }
-    
 
     async rescheduleOrder(orderId: string, updateOrderData: any) {
         const { time_slot } = updateOrderData;
-    
+
         const order = await this.OrderModel.findOne({ id: orderId });
         if (!order) {
             return errorResponse(404, 'Order not found');
@@ -225,5 +210,5 @@ export class OrderService {
         );
         return successResponse(200, 'Order rescheduled successfully', updatedOrder);
     }
-    
+
 }    
