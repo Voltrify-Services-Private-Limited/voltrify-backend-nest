@@ -7,6 +7,7 @@ import {Service, ServiceSchema} from "../../models/service.model";
 import {Cart, CartSchema} from "../../models/cart.model";
 import {Payment, PaymentSchema} from "../../models/payment.model";
 import {PaymentService} from "../../payment/payment.service"
+import { Refund, RefundSchema } from 'src/models/refund.model';
 
 @Module({
     imports: [
@@ -14,7 +15,9 @@ import {PaymentService} from "../../payment/payment.service"
             {name: Order.name, schema: OrderSchema},
             {name: Service.name, schema: ServiceSchema},
             {name: Cart.name, schema: CartSchema},
-            {name: Payment.name, schema: PaymentSchema}
+            {name: Payment.name, schema: PaymentSchema},
+            {name: Refund.name, schema: RefundSchema}
+
         ])
     ],
     controllers: [OrderController],
