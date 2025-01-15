@@ -8,6 +8,7 @@ import {Service} from '../../models/service.model';
 import {Cart} from "../../models/cart.model";
 import {Payment} from "../../models/payment.model";
 import {PaymentService} from "../../payment/payment.service"
+import {Refund} from "../../models/refund.model";
 import {v4 as uuidv4} from 'uuid';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class OrderService {
         @InjectModel(Service.name) private ServiceModel: Model<Service>,
         @InjectModel(Cart.name) private CartModel: Model<Cart>,
         @InjectModel(Payment.name) private PaymentModel: Model<Payment>,
+        @InjectModel(Refund.name) private RefundModel: Model<Refund>,
         private readonly paymentService: PaymentService
     ) {
     }
@@ -117,30 +119,25 @@ export class OrderService {
 
 
     async getAllOrders() {
-        const orders = await this.OrderModel.find();
-        return successResponse(200, "Orders fetched successfully", orders);
-    }
-
-    async getOrderById(orderId: string) {
-        const order = await this.OrderModel.findOne({ id: orderId });
-        if (!order) {
-            return errorResponse(404, 'Order not found');
+        const orders = await this.OrderModel.aggregate([
+            {
+                $lookup: {
+                    from: 'payments', 
+                    localField: 'id', 
+                    foreignField: 'order_id', 
+                    as: 'payment', 
+                },
+            },
+            { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } }, // Flatten payment array
+            { $sort: { created_at: 1 } }, // Sort by creation date
+        ]);
+    
+        if (!orders || orders.length === 0) {
+            return errorResponse(404, 'No orders found');
         }
-        const payment = await this.PaymentModel.findOne({ order_id: orderId });
-
-        if (!payment) {
-            return errorResponse(404, 'Payment not found for this order');
-        }
-
-        return successResponse(200, 'Order details fetched successfully', {
-            order,
-            payment: {
-                payment_id: payment.payment_id,
-                status: payment.status,
-                amount: payment.amount
-            }
-        });
-    }
+    
+        return successResponse(200, 'Order details fetched successfully', orders);
+    } 
 
     async updateOrder(orderId: string, updateOrderData: any) {
         const { address_id, user_description, condition_id } = updateOrderData || {};
@@ -182,14 +179,43 @@ export class OrderService {
             { status: 'cancelled' },
             { new: true }
         );
+        const refundId = uuidv4();
+        const refund = new this.RefundModel({
+            refund_id: refundId,
+            order_id: orderId,
+            user_id: order.user_id,
+            payment_id: payment.payment_id,
+            amount: payment.amount,
+            reason: 'Order cancelled by user',
+            status: 'initiated',
+            refund_response: {},
+        });
+        await refund.save();
+        const paymentGatewayResponse = await this.paymentService.refundPayment(payment.payment_id, refund.amount);
 
-        return successResponse(200, 'Order cancelled successfully', {
+        refund.refund_response = paymentGatewayResponse;
+        refund.status = paymentGatewayResponse.status === 'processed' ? 'processed' : 'failed';
+        await refund.save();
+        
+        if (refund.status === 'failed') {
+            return errorResponse(500, 'Order cancelled but refund processing failed', {
+                order: updatedOrder,
+                refund: {
+                    refund_id: refund.refund_id,
+                    amount: refund.amount,
+                    status: refund.status,
+                    refund_response: refund.refund_response,
+                },
+            });
+        }     
+       return successResponse(200, 'Order cancelled and refund processed successfully', {
             order: updatedOrder,
-            payment: {
-                payment_id: payment.payment_id, // Payment or transaction ID
-                status: payment.status,
-                amount: payment.amount
-            }
+            refund: {
+                refund_id: refund.refund_id,
+                amount: refund.amount,
+                status: refund.status,
+                refund_response: refund.refund_response,
+            },
         });
     }
 
