@@ -41,15 +41,6 @@ export class PaymentService {
         }
     }
 
-<<<<<<< HEAD
-    async refundPayment(paymentId: string, amount: number) {
-        return {
-            status: 'success', 
-            refund_id: uuidv4(),  
-            message: 'Refund processed successfully',
-        };
-  }
-=======
     async processRefund(paymentId: string, amount?: number) {
         // Prepare refund data
         const refundRequest: any = {payment_id: paymentId};
@@ -67,5 +58,4 @@ export class PaymentService {
         };
     }
 
->>>>>>> c08002fb214facdf40ca47cae6afbaa9e9f2e9bc
 }
