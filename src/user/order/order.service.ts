@@ -25,7 +25,6 @@ export class OrderService {
 
     // Create a new order with calculations and service details
     async create(req: any) {
-        console.log("in service file")
         const userId = req.user.id
         const cartId = req.body.cart_id
         const addressId = req.body.address_id
@@ -36,12 +35,10 @@ export class OrderService {
         const paymentMode = req.body.payment_mode
         const userDescription = req.body.service_description
 
-        console.log("check-0.1")
         const cart = await this.CartModel.findOne({id: cartId, user_id: userId, deleted_at: null})
         if (!cart) {
             return errorResponse(404, "Cart not found");
         }
-        console.log("check-0.2")
         // Fetch related data from Service model based on service_id
         const service = await this.ServiceModel.findOne({id: cart.service_id})
         if (!service) {
@@ -55,13 +52,13 @@ export class OrderService {
         const visitingCharge = service.visiting_charge;
         const serviceCharge = service.price;
         const totalCharges = visitingCharge + (serviceCharge || 0);
+        const discount = 0;
         // const gst = (totalCharges - discount) * 0.18; // Assuming 18% GST
         // const finalAmount = totalCharges - discount + gst;
-        const finalAmount = totalCharges;
+        const finalAmount = totalCharges - discount;
         const orderId = uuidv4()
 
         // Prepare the order data
-        console.log("check-0")
         const newOrder = new this.OrderModel({
             id: orderId,
             user_id: userId,
@@ -78,32 +75,16 @@ export class OrderService {
             visiting_charge: visitingCharge,
             service_charge: serviceCharge,
             total_charges: totalCharges,
-            // discount: discount,
+            discount: discount,
             // total_gst: gst,
             final_amount: finalAmount,
             created_by: userId,
         });
-        console.log("check-1")
         // Save the order
         await newOrder.save();
-        console.log("check-2")
-        console.log("till here")
         const paymentOrder = await this.paymentService.createOrder(finalAmount, orderId)
         console.log("this is razorpay order: ", paymentOrder)
-        // {x
-        //     amount: 85000,
-        //     amount_due: 85000,
-        //     amount_paid: 0,
-        //     attempts: 0,
-        //     created_at: 1735689514,
-        //     currency: 'INR',
-        //     entity: 'order',
-        //     id: 'order_PdyOSfyBYo3knw',
-        //     notes: [],
-        //     offer_id: null,
-        //     receipt: '0edd0c91-1d2c-4bb0-a332-9a21d31b4df3',
-        //     status: 'created'
-        // }
+
         const payment = new this.PaymentModel({
             payment_id: paymentOrder.id,
             user_id: userId,
@@ -114,7 +95,14 @@ export class OrderService {
             payment_response: paymentOrder
         })
         await payment.save();
-        return successResponse(201, "Order Created", newOrder);
+        const data:any = {
+            amount: paymentOrder.amount,
+            status: paymentOrder.status,
+            payment_created_at: paymentOrder.created_at,
+            razorpay_order_id: paymentOrder.id,
+            receipt: paymentOrder.receipt,
+        }
+        return successResponse(201, "Order Created", data);
     }
 
 
@@ -193,6 +181,7 @@ export class OrderService {
         await refund.save();
         const paymentGatewayResponse = await this.paymentService.refundPayment(payment.payment_id, refund.amount);
 
+<<<<<<< HEAD
         refund.refund_response = paymentGatewayResponse;
         refund.status = paymentGatewayResponse.status === 'processed' ? 'processed' : 'failed';
         await refund.save();
@@ -209,6 +198,11 @@ export class OrderService {
             });
         }     
        return successResponse(200, 'Order cancelled and refund processed successfully', {
+=======
+        const paymentOrder = await this.paymentService.processRefund(payment.payment_id)
+
+        return successResponse(200, 'Order cancelled successfully', {
+>>>>>>> c08002fb214facdf40ca47cae6afbaa9e9f2e9bc
             order: updatedOrder,
             refund: {
                 refund_id: refund.refund_id,

@@ -11,6 +11,12 @@ async function bootstrap() {
     whitelist: true,
     forbidNonWhitelisted: true,
   }));
+  app.enableCors({
+    origin: '*', // Replace with the frontend's origin
+    methods: 'GET,POST,PUT,DELETE,OPTIONS', // Allowed HTTP methods
+    allowedHeaders: 'Content-Type, Authorization', // Allowed headers
+    credentials: true, // If you need to send cookies or authentication
+  });
   await app.listen(3000);
 }
 bootstrap();
