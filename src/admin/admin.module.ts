@@ -18,8 +18,9 @@ import { VoltrifyDevicesService } from './VoltrifyDevices/voltrifydevices.servic
 import { DeviceConditionModule } from './device-condition/device-condition.module';
 import { ServiceModule } from './service/service.module';
 import { Coupon, CouponSchema } from 'src/models/coupon.model';
-import { AdminCouponController } from '../admin/coupon/coupon.controller';
-import { AdminCouponService } from '../admin/coupon/coupon.service';
+import { AdminCouponController } from './coupon/coupon.controller';
+import { AdminCouponService } from './coupon/coupon.service';
+import { S3Service } from '../s3.service';
 
 
 
@@ -42,7 +43,7 @@ import { AdminCouponService } from '../admin/coupon/coupon.service';
         
     ],
     controllers: [AdminController,CategoryController,DeviceController,VoltrifyDevicesController,AdminCouponController],
-    providers: [AdminService,CategoryService,DeviceService,VoltrifyDevicesService,AdminCouponService],
+    providers: [AdminService,CategoryService,DeviceService,VoltrifyDevicesService,AdminCouponService, S3Service],
     
 })
 export class AdminModule {
