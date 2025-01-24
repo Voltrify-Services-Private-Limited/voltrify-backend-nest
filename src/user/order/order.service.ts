@@ -139,6 +139,29 @@ export class OrderService {
         return successResponse(200, 'Order details fetched successfully', orders);
     } 
 
+    async getOrderById(orderId: string) {
+        const order = await this.OrderModel.aggregate([
+            {
+                $match: { id: orderId } 
+            },
+            {
+                $lookup: {
+                    from: 'payments',
+                    localField: 'id',
+                    foreignField: 'order_id',
+                    as: 'payment',
+                },
+            },
+            { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } },
+        ]);
+    
+        if (!order || order.length === 0) {
+            return errorResponse(404, 'Order not found');
+        }
+    
+        return successResponse(200, 'Order details fetched successfully', order[0]);
+    }  
+
     async updateOrder(orderId: string, updateOrderData: any) {
         const { address_id, user_description, condition_id } = updateOrderData || {};
 
