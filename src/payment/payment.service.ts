@@ -1,5 +1,7 @@
 import {Injectable, HttpException, HttpStatus} from '@nestjs/common';
+
 const Razorpay = require('razorpay');
+import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -13,10 +15,10 @@ export class PaymentService {
         });
     }
 
-    async createOrder(amount: number, currency: string, receipt: string) {
+    async createOrder(amount: number, receipt: string) {
         const options = {
             amount: amount * 100, // Razorpay works with paise, not rupees
-            currency,
+            currency: "INR",
             receipt,
         };
         const order = await this.razorpay.orders.create(options);
@@ -30,13 +32,30 @@ export class PaymentService {
         const expectedSignature = hmac.digest('hex');
 
         if (expectedSignature === signature) {
-            return { verified: true };
+            return {verified: true};
         } else {
             throw new HttpException(
                 'Payment verification failed',
                 HttpStatus.UNAUTHORIZED,
             );
         }
+    }
+
+    async processRefund(paymentId: string, amount?: number) {
+        // Prepare refund data
+        const refundRequest: any = {payment_id: paymentId};
+        if (amount) {
+            refundRequest.amount = amount; // Amount in paise (e.g., ₹100 = 10000 paise)
+        }
+
+        // Initiate the refund request
+        const refund = await this.razorpay.payments.refund(refundRequest);
+
+        return {
+            success: true,
+            message: 'Refund processed successfully',
+            refundDetails: refund,
+        };
     }
 
 }

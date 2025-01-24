@@ -29,8 +29,8 @@ export class Order extends Document {
     @Prop({type: String, required: false, ref: 'DeviceCondition'})
     condition_id: string;
 
-    @Prop({type: Date, required: true})
-    time_slot: Date;
+    @Prop({type: String, required: true})
+    time_slot: string;
 
     @Prop({type: Number, required: false})
     service_duration: number;  // in minutes
@@ -44,7 +44,7 @@ export class Order extends Document {
     @Prop({
         type: String,
         required: true,
-        enum: ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'],
+        enum: ['pending', 'confirmed', 'in-progress', 'picked', 'delivered', 'completed', 'cancelled'],
         default: 'pending'
     })
     status: string;
