@@ -56,6 +56,7 @@ export class ServiceService {
                     name: 1,
                     deviceId: '$device_id',
                     deviceName: '$deviceDetails.name',
+                    deviceImage: '$deviceDetails.images', 
                     price: 1,
                     visitingCharge: '$visiting_charge',
                     description: 1,
