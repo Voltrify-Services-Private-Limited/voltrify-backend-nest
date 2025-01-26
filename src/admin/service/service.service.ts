@@ -58,12 +58,12 @@ export class ServiceService {
                     deviceName: '$deviceDetails.name',
                     deviceImage: '$deviceDetails.images', 
                     price: 1,
-                    visitingCharge: '$visiting_charge',
                     description: 1,
                     city: 1,
                     type: 1,            
                     duration: 1,
-                    categoryId: '$category_id'          
+                    categoryId: '$category_id',          
+                    visitingCharge: '$visiting_charge',
                 },
             }
         );
