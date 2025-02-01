@@ -22,7 +22,8 @@ export class ServiceService {
                         { name: condition },
                         { id: condition },
                         { city: condition },
-                        { type: condition }
+                        { type: condition },
+                        { category_id: condition }
                     ]
                 }
             });
@@ -71,12 +72,14 @@ export class ServiceService {
                     name: 1,
                     deviceId: '$device_id',
                     deviceName: '$deviceDetails.name',
+                    deviceImage: '$deviceDetails.images',
                     price: 1,
-                    visitingCharge: '$visiting_charge',
                     description: 1,
                     city: 1,
                     type: 1,            
-                    duration: 1         
+                    duration: 1,
+                    categoryId: '$category_id',
+                    visitingCharge: '$visiting_charge',
                 },
             }
         );
@@ -87,10 +90,10 @@ export class ServiceService {
     }
 
     async create(req: Request) {
-        const { deviceId, name, description, visitingCharge, price, city, type ,duration} = req.body;
+        const { deviceId, name, description, visitingCharge, price, city, type ,duration,categoryId} = req.body;
 
-        if (!deviceId || !name || !visitingCharge || !price || !city || !type) {
-            return errorResponse(400, "All required fields (deviceId, name, visitingCharge, price, city, type) must be provided");
+        if (!deviceId || !name || !visitingCharge || !price || !city || !type || !categoryId) {
+            return errorResponse(400, "All required fields (deviceId, name, visitingCharge, price, city, type,categoryId) must be provided");
         }
 
         if (!Object.values(ServiceType).includes(type)) {
@@ -99,6 +102,7 @@ export class ServiceService {
 
         const newService = new this.ServiceModel({
             device_id: deviceId,
+            category_id:categoryId,
             name: name,
             description: description,
             price: price,
@@ -121,11 +125,12 @@ export class ServiceService {
 
     async findOne(req: Request) {
         const condition: string = req.params.condition;
-        const { city, servicename, type, recordsPerPage, pageNo} = req.query;
+        const { city, servicename, type, categoryId, recordsPerPage, pageNo} = req.query;
         const filters: any = {};
         if (city) filters.city = city;
         if (servicename) filters.name = servicename;
         if (type) filters.type = type;
+        if (categoryId) filters.category_id = categoryId;
 
         const { totalRecords, services } = await this.aggregateServiceData(condition, filters, pageNo, recordsPerPage);
         if (!services || services.length === 0) {
@@ -135,7 +140,7 @@ export class ServiceService {
     }
 
     async update(req: Request) {
-        const { deviceId, name, description, visitingCharge, price, city, type,duration } = req.body;
+        const { deviceId, name, description, visitingCharge, price, city, type,duration,categoryId } = req.body;
         const id = req.params.id;
 
         const service = await this.ServiceModel.findOne({ id: id });
@@ -151,6 +156,7 @@ export class ServiceService {
         service.city = city || service.city;
         service.type = type || service.type;
         service.duration = duration || service.duration;
+        service.category_id = categoryId || service.category_id;
 
         await service.save();
         return successResponse(200, "Service updated")
