@@ -56,6 +56,6 @@ export class OtpService {
         if (sendMessage.status !== 200){
             return errorResponse(500, "Something went wrong")
         }
-        return successResponse(201, "Otp created")
+        return successResponse(201, "Otp created", otp)
     }
 }
