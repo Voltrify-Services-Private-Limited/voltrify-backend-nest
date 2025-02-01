@@ -12,7 +12,7 @@ export class ServiceService {
         @InjectModel(Service.name) private ServiceModel: Model<Service>
     ) {}
 
-    private aggregateServiceData(condition?: string, filters?: any) {
+    private async aggregateServiceData(condition?: string, filters?: any, pageNo?: any, recordsPerPage?: any) {
         const pipeline: any[] = [];
         if (condition) {
             pipeline.push({
@@ -33,6 +33,21 @@ export class ServiceService {
                 $match: filters
             });
         }
+        // Clone pipeline to use for total count
+        const countPipeline = [...pipeline, { $count: "totalRecords" }];
+        const totalCountResult = await this.ServiceModel.aggregate(countPipeline).exec();
+        const totalRecords = totalCountResult.length > 0 ? totalCountResult[0].totalRecords : 0;
+
+        // Sorting by createdAt in descending order (latest first)
+        pipeline.push({
+            $sort: { createdAt: -1 }
+        });
+
+        // Apply pagination only if both pageNo and totalRecords are provided
+        if (pageNo !== undefined && recordsPerPage !== undefined) {
+            const skip = (Number(pageNo) - 1) * Number(recordsPerPage);
+            pipeline.push({ $skip: skip }, { $limit: Number(recordsPerPage) });
+        }
 
         pipeline.push(
             {
@@ -52,6 +67,7 @@ export class ServiceService {
             {
                 $project: {
                     _id: 0,
+                    id: 1,
                     name: 1,
                     deviceId: '$device_id',
                     deviceName: '$deviceDetails.name',
@@ -65,7 +81,9 @@ export class ServiceService {
             }
         );
 
-        return this.ServiceModel.aggregate(pipeline).exec();
+        const services = await this.ServiceModel.aggregate(pipeline).exec();
+
+        return { totalRecords, services };
     }
 
     async create(req: Request) {
@@ -95,23 +113,25 @@ export class ServiceService {
     }
 
     async findAll(req: Request) {
-        const services = await this.aggregateServiceData(); 
-        return successResponse(200, "Devices data", services);
+        const pageNo: any = req.query.pageNo;
+        const recordsPerPage: any = req.query.recordsPerPage;
+        const { totalRecords, services } = await this.aggregateServiceData(undefined, undefined, pageNo, recordsPerPage);
+        return successResponse(200, "Devices data", services, totalRecords);
     }
 
     async findOne(req: Request) {
         const condition: string = req.params.condition;
-        const { city, servicename,type} = req.query;
+        const { city, servicename, type, recordsPerPage, pageNo} = req.query;
         const filters: any = {};
         if (city) filters.city = city;
         if (servicename) filters.name = servicename;
         if (type) filters.type = type;
 
-        const service = await this.aggregateServiceData(condition, filters);
-        if (!service || service.length === 0) {
+        const { totalRecords, services } = await this.aggregateServiceData(condition, filters, pageNo, recordsPerPage);
+        if (!services || services.length === 0) {
             return errorResponse(404, "No matching service found");
         }
-        return successResponse(200, "Device data", service);
+        return successResponse(200, "Device data", services, totalRecords);
     }
 
     async update(req: Request) {
