@@ -51,11 +51,11 @@ export class OtpService {
         await newOtp.save();
 
         // Send OTP via SMS using NotificationService
-        const message = optMessageBody(otp);
-        const sendMessage = await this.notificationService.sendSMS(phoneNumber, message);
-        if (sendMessage.status !== 200){
-            return errorResponse(500, "Something went wrong")
-        }
+        // const message = optMessageBody(otp);
+        // const sendMessage = await this.notificationService.sendSMS(phoneNumber, message);
+        // if (sendMessage.status !== 200){
+        //     return errorResponse(500, "Something went wrong")
+        // }
         return successResponse(201, "Otp created", otp)
     }
 }
