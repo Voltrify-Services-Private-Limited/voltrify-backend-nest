@@ -5,11 +5,13 @@ import {InjectModel} from "@nestjs/mongoose";
 import {Service} from "../../models/service.model";
 import {Model} from "mongoose";
 import { ServiceType } from 'src/utils/types/service-type.enum';
+import { S3Service } from '../../s3.service';
 
 @Injectable()
 export class ServiceService {
     constructor(
-        @InjectModel(Service.name) private ServiceModel: Model<Service>
+        @InjectModel(Service.name) private ServiceModel: Model<Service>,
+        private readonly s3Service: S3Service
     ) {}
 
     private async aggregateServiceData(condition?: string, filters?: any, pageNo?: any, recordsPerPage?: any) {
@@ -120,7 +122,18 @@ export class ServiceService {
         const pageNo: any = req.query.pageNo;
         const recordsPerPage: any = req.query.recordsPerPage;
         const { totalRecords, services } = await this.aggregateServiceData(undefined, undefined, pageNo, recordsPerPage);
-        return successResponse(200, "Devices data", services, totalRecords);
+        // Transform each device to include pre-signed URLs for images
+        const updatedServices = await Promise.all(
+            services.map(async (service) => {
+                if (service.deviceImage){
+                    service.deviceImage = await Promise.all(
+                        service?.deviceImage?.map(async (image: any) => await this.s3Service.getPresignedUrl(image))
+                    );
+                }
+                return service;
+            })
+        );
+        return successResponse(200, "Devices data", updatedServices, totalRecords);
     }
 
     async findOne(req: Request) {
@@ -136,7 +149,18 @@ export class ServiceService {
         if (!services || services.length === 0) {
             return errorResponse(404, "No matching service found");
         }
-        return successResponse(200, "Device data", services, totalRecords);
+        // Transform each device to include pre-signed URLs for images
+        const updatedServices = await Promise.all(
+            services.map(async (service) => {
+                if (service.deviceImage){
+                    service.deviceImage = await Promise.all(
+                        service?.deviceImage?.map(async (image: any) => await this.s3Service.getPresignedUrl(image))
+                    );
+                }
+                return service;
+            })
+        );
+        return successResponse(200, "Device data", updatedServices, totalRecords);
     }
 
     async update(req: Request) {

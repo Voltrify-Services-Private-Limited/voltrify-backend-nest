@@ -21,6 +21,8 @@ import { Coupon, CouponSchema } from 'src/models/coupon.model';
 import { AdminCouponController } from './coupon/coupon.controller';
 import { AdminCouponService } from './coupon/coupon.service';
 import { S3Service } from '../s3.service';
+import { ServiceController } from './service/service.controller';
+import { ServiceService } from './service/service.service';
 
 
 
@@ -37,13 +39,10 @@ import { S3Service } from '../s3.service';
             {name: Coupon.name, schema: CouponSchema}
 
         ]),
-        DeviceConditionModule,
-        ServiceModule,
-
-        
+        DeviceConditionModule
     ],
-    controllers: [AdminController,CategoryController,DeviceController,VoltrifyDevicesController,AdminCouponController],
-    providers: [AdminService,CategoryService,DeviceService,VoltrifyDevicesService,AdminCouponService, S3Service],
+    controllers: [AdminController,CategoryController,DeviceController, ServiceController, VoltrifyDevicesController,AdminCouponController],
+    providers: [AdminService,CategoryService,DeviceService, ServiceService,VoltrifyDevicesService,AdminCouponService, S3Service],
     
 })
 export class AdminModule {
