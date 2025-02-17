@@ -10,6 +10,7 @@ import {Payment} from "../../models/payment.model";
 import {PaymentService} from "../../payment/payment.service"
 import {Refund} from "../../models/refund.model";
 import {v4 as uuidv4} from 'uuid';
+import { S3Service } from '../../s3.service';
 
 @Injectable()
 export class OrderService {
@@ -19,7 +20,8 @@ export class OrderService {
         @InjectModel(Cart.name) private CartModel: Model<Cart>,
         @InjectModel(Payment.name) private PaymentModel: Model<Payment>,
         @InjectModel(Refund.name) private RefundModel: Model<Refund>,
-        private readonly paymentService: PaymentService
+        private readonly paymentService: PaymentService,
+        private readonly s3Service: S3Service
     ) {
     }
 
@@ -122,22 +124,84 @@ export class OrderService {
         const orders = await this.OrderModel.aggregate([
             {
                 $lookup: {
-                    from: 'payments', 
-                    localField: 'id', 
-                    foreignField: 'order_id', 
-                    as: 'payment', 
+                    from: 'payments',
+                    localField: 'id',
+                    foreignField: 'order_id',
+                    as: 'payment',
                 },
             },
-            { $unwind: { path: '$payment', preserveNullAndEmptyArrays: true } }, // Flatten payment array
-            { $sort: { created_at: 1 } }, // Sort by creation date
+            {
+                $lookup: {
+                    from: 'devices',
+                    localField: 'device_id',
+                    foreignField: 'id',
+                    as: 'deviceDetails',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$deviceDetails',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $unwind: {
+                    path: '$payment',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $sort: {
+                    created_at: 1
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    id: 1,
+                    user_id: 1,
+                    address_id: 1,
+                    device_id: 1,
+                    user_description: 1,
+                    service_id: 1,
+                    service_type: 1,
+                    condition_id: 1,
+                    time_slot: 1,
+                    service_duration: 1,
+                    status: 1,
+                    payment_status: 1,
+                    payment_mode: 1,
+                    coupons_code: 1,
+                    visiting_charge: 1,
+                    service_charge: 1,
+                    total_charges: 1,
+                    final_amount: 1,
+                    created_by: 1,
+                    components_charge: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    payment: 1,
+                    deviceImages: { $ifNull: ["$deviceDetails.images", []] }, // Only include images
+                }
+            }
         ]);
-    
+
         if (!orders || orders.length === 0) {
             return errorResponse(404, 'No orders found');
         }
-    
-        return successResponse(200, 'Order details fetched successfully', orders);
-    } 
+        const updatedOrders = await Promise.all(
+            orders.map(async (order) => {
+                if (order.deviceImages){
+                    console.log(order.deviceImages);
+                    order.deviceImages = await Promise.all(
+                        order?.deviceImages?.map(async (image: any) => await this.s3Service.getPresignedUrl(image))
+                    );
+                }
+                return order;
+            })
+        );
+        return successResponse(200, 'Order details fetched successfully', updatedOrders);
+    }
 
     async getOrderById(orderId: string) {
         const order = await this.OrderModel.aggregate([

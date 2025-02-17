@@ -8,6 +8,7 @@ import {Cart, CartSchema} from "../../models/cart.model";
 import {Payment, PaymentSchema} from "../../models/payment.model";
 import {PaymentService} from "../../payment/payment.service"
 import { Refund, RefundSchema } from 'src/models/refund.model';
+import { S3Service } from '../../s3.service';
 
 @Module({
     imports: [
@@ -21,7 +22,7 @@ import { Refund, RefundSchema } from 'src/models/refund.model';
         ])
     ],
     controllers: [OrderController],
-    providers: [OrderService, PaymentService],
+    providers: [OrderService, PaymentService, S3Service],
 })
 export class OrderModule {
 }
