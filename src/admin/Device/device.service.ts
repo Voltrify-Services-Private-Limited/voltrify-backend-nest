@@ -22,7 +22,7 @@ function getLookupPipeline(): PipelineStage[] {
                 description: 1,
                 images: 1,
                 categories_id: 1,
-                categories_details: { name: 1 },
+                categories_details: { id:1, name: 1 },
             },
         },
     ];

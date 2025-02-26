@@ -9,29 +9,20 @@ export class Card {
     @Prop({ type: String, unique: true, default: uuidv4 })
     id: string;
 
-    @Prop({ type: String, unique: true, required: true })
-    cardId: string;
-
     @Prop({ required: true })
     userId: string;
 
-    @Prop({ required: true, enum: ['DISCOUNT', 'MEMBERSHIP'] })
-    type: string;
+    @Prop({ type: String, unique: true, required: true })
+    cardNumber: string;
 
-    @Prop({ default: 0 })
-    balance: number;
+    @Prop({ type: String, required: true })
+    cardHolderName: string;
 
-    @Prop({ default: 'ACTIVE', enum: ['ACTIVE', 'INACTIVE'] })
-    status: string;
 
-    @Prop()
-    expiryDate: Date;
-
-    @Prop()
-    createdBy: string;
+    @Prop({ type: String, required: true })
+    expiry: string;
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);
 
 CardSchema.index({ id: 1 }, { unique: true });
-CardSchema.index({ cardId: 1 }, { unique: true });
