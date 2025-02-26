@@ -10,7 +10,7 @@ export class CartController {
     @Post()
     @UseGuards(AuthGuard)
     async create(@Req() req: Request, @Res() res: Response) {
-        const result = await this.cartService.create(req.body);
+        const result = await this.cartService.create(req);
         return res.status(result.statusCode).json(result);
     }
     @Get()

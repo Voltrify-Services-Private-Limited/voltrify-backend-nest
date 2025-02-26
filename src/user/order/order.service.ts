@@ -27,85 +27,81 @@ export class OrderService {
 
     // Create a new order with calculations and service details
     async create(req: any) {
-        console.log("in service file")
-        const userId = req.user.id
-        const cartId = req.body.cart_id
-        const addressId = req.body.address_id
+        const {
+            cart_id,
+            address_id,
+            condition_id,
+            time_slot,
+            date,
+            coupons_code,
+            payment_mode,
+            service_description,
+            device_brand,
+            device_model
+        } = req.body;
 
-        const conditionId = req.body.condition_id
-        const timeSlot = req.body.time_slot
-        const couponsCode = req.body.coupons_code
-        const paymentMode = req.body.payment_mode
-        const userDescription = req.body.service_description
+        if (!cart_id || !address_id || !condition_id || !time_slot || !date || !payment_mode) {
+            return errorResponse(400, "Missing required fields");
+        }
 
-        console.log("check-0.1")
-        const cart = await this.CartModel.findOne({id: cartId, user_id: userId, deleted_at: null})
+        // Validate time_slot format (HH:MM AM/PM)
+        const timeSlotRegex = /^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/;
+        if (!timeSlotRegex.test(time_slot)) {
+            return errorResponse(400, "Invalid time_slot format. Expected format: HH:MM AM/PM");
+        }
+
+        // Validate date format (DD-MM-YYYY)
+        const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-[0-9]{4}$/;
+        if (!dateRegex.test(date)) {
+            return errorResponse(400, "Invalid date format. Expected format: DD-MM-YYYY");
+        }
+        
+        const userId = req.user.id;
+
+        // Validate cart existence
+        const cart = await this.CartModel.findOne({id: cart_id, user_id: userId, deleted_at: null});
         if (!cart) {
             return errorResponse(404, "Cart not found");
         }
-        console.log("check-0.2")
-        // Fetch related data from Service model based on service_id
-        const service = await this.ServiceModel.findOne({id: cart.service_id})
+
+        // Validate service existence
+        const service = await this.ServiceModel.findOne({id: cart.service_id});
         if (!service) {
             return errorResponse(404, "Service not found");
         }
 
         // Perform necessary calculations
-        const deviceId = service.device_id
-        const serviceDuration = service.duration;
-        const serviceType = service.type;
-        const visitingCharge = service.visiting_charge;
-        const serviceCharge = service.price;
-        const totalCharges = visitingCharge + (serviceCharge || 0);
-        // const gst = (totalCharges - discount) * 0.18; // Assuming 18% GST
-        // const finalAmount = totalCharges - discount + gst;
+        const totalCharges = service.visiting_charge + (service.price || 0);
         const finalAmount = totalCharges;
-        const orderId = uuidv4()
+        const orderId = uuidv4();
 
-        // Prepare the order data
-        console.log("check-0")
+        // Prepare and save order
         const newOrder = new this.OrderModel({
             id: orderId,
             user_id: userId,
-            address_id: addressId,
-            device_id: deviceId,
-            user_description: userDescription,
+            address_id,
+            device_id: service.device_id,
+            user_description: service_description,
+            user_device_brand: device_brand,
+            user_device_model: device_model,
             service_id: service.id,
-            service_duration: serviceDuration,
-            service_type: serviceType,
-            condition_id: conditionId,
-            time_slot: timeSlot,
-            payment_mode: paymentMode,
-            coupons_code: couponsCode,
-            visiting_charge: visitingCharge,
-            service_charge: serviceCharge,
+            service_duration: service.duration,
+            service_type: service.type,
+            condition_id,
+            time_slot,
+            date,
+            payment_mode,
+            coupons_code,
+            visiting_charge: service.visiting_charge,
+            service_charge: service.price,
             total_charges: totalCharges,
-            // discount: discount,
-            // total_gst: gst,
             final_amount: finalAmount,
             created_by: userId,
         });
-        console.log("check-1")
-        // Save the order
         await newOrder.save();
-        console.log("check-2")
-        console.log("till here")
-        const paymentOrder = await this.paymentService.createOrder(finalAmount, orderId)
-        console.log("this is razorpay order: ", paymentOrder)
-        // {x
-        //     amount: 85000,
-        //     amount_due: 85000,
-        //     amount_paid: 0,
-        //     attempts: 0,
-        //     created_at: 1735689514,
-        //     currency: 'INR',
-        //     entity: 'order',
-        //     id: 'order_PdyOSfyBYo3knw',
-        //     notes: [],
-        //     offer_id: null,
-        //     receipt: '0edd0c91-1d2c-4bb0-a332-9a21d31b4df3',
-        //     status: 'created'
-        // }
+
+        // Create payment order
+        const paymentOrder = await this.paymentService.createOrder(finalAmount, orderId);
         const payment = new this.PaymentModel({
             payment_id: paymentOrder.id,
             user_id: userId,
@@ -114,9 +110,16 @@ export class OrderService {
             status: paymentOrder.status,
             payment_created_at: paymentOrder.created_at,
             payment_response: paymentOrder
-        })
+        });
         await payment.save();
-        return successResponse(201, "Order Created", newOrder);
+
+        return successResponse(201, "Order Created", {
+            payment_order_id: paymentOrder.id,
+            payment_receipt: paymentOrder.receipt,
+            payment_amount_due: paymentOrder.amount_due,
+            payment_status: paymentOrder.status,
+            payment_created_at: paymentOrder.created_at,
+        });
     }
 
 

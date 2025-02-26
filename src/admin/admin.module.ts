@@ -23,6 +23,7 @@ import { AdminCouponService } from './coupon/coupon.service';
 import { S3Service } from '../s3.service';
 import { ServiceController } from './service/service.controller';
 import { ServiceService } from './service/service.service';
+import { OrderModule } from './order/order.module';
 
 
 
@@ -39,7 +40,8 @@ import { ServiceService } from './service/service.service';
             {name: Coupon.name, schema: CouponSchema}
 
         ]),
-        DeviceConditionModule
+        DeviceConditionModule,
+        OrderModule
     ],
     controllers: [AdminController,CategoryController,DeviceController, ServiceController, VoltrifyDevicesController,AdminCouponController],
     providers: [AdminService,CategoryService,DeviceService, ServiceService,VoltrifyDevicesService,AdminCouponService, S3Service],

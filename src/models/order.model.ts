@@ -20,6 +20,12 @@ export class Order extends Document {
     @Prop({type: String, required: false})
     user_description: string;
 
+    @Prop({type: String, required: false})
+    user_device_brand: string;
+
+    @Prop({type: String, required: false})
+    user_device_model: string;
+
     @Prop({type: String, required: true, ref: 'Service'})
     service_id: string;
 
@@ -31,6 +37,9 @@ export class Order extends Document {
 
     @Prop({type: String, required: true})
     time_slot: string;
+
+    @Prop({type: String, required: true})
+    date: string;
 
     @Prop({type: Number, required: false})
     service_duration: number;  // in minutes

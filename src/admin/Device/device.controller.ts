@@ -32,9 +32,11 @@ export class DeviceController {
             const { name, description, categories_id } = body;
             const fileUrls = await this.s3Service.uploadMultipleFiles(images, "devices");
             const device = await this.deviceService.create(name, description, categories_id, fileUrls);
+            console.log(device);
             return successResponse(201, 'Device created successfully');
         } catch (error) {
-            return errorResponse(400, 'Failed to create device', error.message);
+            console.log(error);
+            return errorResponse(500, 'Failed to create device', error.message);
         }
     }
 
