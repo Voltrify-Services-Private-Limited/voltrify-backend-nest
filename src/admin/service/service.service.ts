@@ -21,11 +21,7 @@ export class ServiceService {
                 $match: {
                     $or: [
                         { device_id: condition },
-                        { name: condition },
                         { id: condition },
-                        { city: condition },
-                        { type: condition },
-                        { category_id: condition }
                     ]
                 }
             });
@@ -136,12 +132,12 @@ export class ServiceService {
         return successResponse(200, "Devices data", updatedServices, totalRecords);
     }
 
-    async findOne(req: Request) {
+    async findWithFilters(req: Request) {
         const condition: string = req.params.condition;
-        const { city, servicename, type, categoryId, recordsPerPage, pageNo} = req.query;
+        const { city, serviceName, type, categoryId, recordsPerPage, pageNo}:any = req.query;
         const filters: any = {};
         if (city) filters.city = city;
-        if (servicename) filters.name = servicename;
+        if (serviceName) filters.name = { $regex: new RegExp(serviceName, "i") }; // Case-insensitive search
         if (type) filters.type = type;
         if (categoryId) filters.category_id = categoryId;
 
