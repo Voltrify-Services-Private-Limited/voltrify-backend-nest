@@ -89,7 +89,7 @@ export class UserService {
         // Decode token
         let userId:string;
         try {
-            const tokenBody = verifyRefreshToken(refreshToken) as {userId: string};
+            const tokenBody:any = verifyRefreshToken(refreshToken)
             userId = tokenBody.userId
         }
         catch (e) {
@@ -103,7 +103,7 @@ export class UserService {
         }
         // Generate new token
         const payload = {
-            userId: user.id,
+            id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
