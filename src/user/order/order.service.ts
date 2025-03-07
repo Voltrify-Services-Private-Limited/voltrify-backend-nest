@@ -258,6 +258,9 @@ export class OrderService {
         if (!order) {
             return errorResponse(404, 'Order not found');
         }
+        if (order.status !== "confirmed") {
+            return errorResponse(400, 'Order is not in confirmed state');
+        }
         const payment = await this.PaymentModel.findOne({ order_id: orderId });
         if (!payment) {
             return errorResponse(404, 'Payment not found for this order');
@@ -313,6 +316,9 @@ export class OrderService {
         const order = await this.OrderModel.findOne({ id: orderId });
         if (!order) {
             return errorResponse(404, 'Order not found');
+        }
+        if (order.status !== "confirmed") {
+            return errorResponse(400, 'Order is not in confirmed state');
         }
         if (!time_slot) {
             return errorResponse(400, 'New time slot is required');

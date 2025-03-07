@@ -1,14 +1,19 @@
 import {Injectable, HttpException, HttpStatus} from '@nestjs/common';
-
 const Razorpay = require('razorpay');
-import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
+import {Payment} from "../models/payment.model";
+import { InjectModel } from '@nestjs/mongoose';
+import { Order } from '../models/order.model';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class PaymentService {
     private razorpay: InstanceType<typeof Razorpay>;
 
-    constructor() {
+    constructor(
+        @InjectModel(Payment.name) private PaymentModel: Model<Payment>,
+        @InjectModel(Order.name) private OrderModel: Model<Order>,
+    ) {
         this.razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -32,6 +37,15 @@ export class PaymentService {
         const expectedSignature = hmac.digest('hex');
 
         if (expectedSignature === signature) {
+            const payment = await this.PaymentModel.findOneAndUpdate(
+                { payment_id: orderId },
+                { status: 'complete' }
+            );
+            await this.OrderModel.findOneAndUpdate(
+                { id: payment.order_id },
+                { status: 'confirmed' },
+                { payment_status: 'paid' }
+            );
             return {verified: true};
         } else {
             throw new HttpException(
@@ -42,6 +56,7 @@ export class PaymentService {
     }
 
     async processRefund(paymentId: string, amount?: number) {
+        console.log("refund in");
         // Prepare refund data
         const refundRequest: any = {payment_id: paymentId};
         if (amount) {
@@ -49,7 +64,9 @@ export class PaymentService {
         }
 
         // Initiate the refund request
+        console.log("refund request");
         const refund = await this.razorpay.payments.refund(refundRequest);
+        console.log("refund:", refund);
 
         return {
             success: true,
