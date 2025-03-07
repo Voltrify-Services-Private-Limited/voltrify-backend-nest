@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage } from 'mongoose';
 import { Device } from '../../models/device.model';
 import { S3Service } from '../../s3.service';
+import { successResponse } from '../../utils/response.util';
 
 function getLookupPipeline(): PipelineStage[] {
     return [
@@ -22,7 +23,7 @@ function getLookupPipeline(): PipelineStage[] {
                 description: 1,
                 images: 1,
                 categories_id: 1,
-                categories_details: { id:1, name: 1 },
+                categories_details: { id: 1, name: 1 },
             },
         },
     ];
@@ -32,7 +33,7 @@ function getLookupPipeline(): PipelineStage[] {
 export class DeviceService {
     constructor(
         @InjectModel(Device.name) private readonly deviceModel: Model<Device>,
-        private readonly s3Service: S3Service
+        private readonly s3Service: S3Service,
     ) {
     }
 
@@ -51,10 +52,10 @@ export class DeviceService {
         const updatedDevices = await Promise.all(
             devices.map(async (device) => {
                 device.images = await Promise.all(
-                    device.images.map(async (image: any) => await this.s3Service.getPresignedUrl(image))
+                    device.images.map(async (image: any) => await this.s3Service.getPresignedUrl(image)),
                 );
                 return device;
-            })
+            }),
         );
 
         return updatedDevices;
@@ -65,10 +66,32 @@ export class DeviceService {
             { $match: { id } },
             ...getLookupPipeline(),
         ];
-        const [result]:any = await this.deviceModel.aggregate(pipeline).exec();
-        result.images = await Promise.all(result.images.map(async (image: any) => await this.s3Service.getPresignedUrl(image)))
+        const [result]: any = await this.deviceModel.aggregate(pipeline).exec();
+        result.images = await Promise.all(result.images.map(async (image: any) => await this.s3Service.getPresignedUrl(image)));
         if (!result || result.length === 0) throw new NotFoundException(`Device with ID ${id} not found`);
         return result;
+    }
+
+    async findByCategory(req:any) {
+        const categoryId = req.params.categoryId
+        const pipeline: PipelineStage[] = [
+            { $match: { categories_id: categoryId } }, // Match devices with the given categoryId
+            ...getLookupPipeline(),
+        ];
+
+        const devices: any[] = await this.deviceModel.aggregate(pipeline).exec();
+
+        // Transform each device to include pre-signed URLs for images
+        const updatedDevices = await Promise.all(
+            devices.map(async (device) => {
+                device.images = await Promise.all(
+                    device.images.map(async (image: any) => await this.s3Service.getPresignedUrl(image)),
+                );
+                return device;
+            }),
+        );
+
+        return successResponse(200, 'Devices list fetched successfully', updatedDevices);
     }
 
     async update(

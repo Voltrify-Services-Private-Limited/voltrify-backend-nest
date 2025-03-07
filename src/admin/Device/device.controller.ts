@@ -7,12 +7,13 @@ import {
     Patch,
     Delete,
     UploadedFiles,
-    UseInterceptors,
+    UseInterceptors, Req, Res,
 } from '@nestjs/common';
 import { DeviceService } from './device.service';
 import { successResponse, errorResponse } from '../../utils/response.util';
 import { S3Service } from '../../s3.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Request, Response } from 'express';
 
 @Controller('devices')
 export class DeviceController {
@@ -58,6 +59,12 @@ export class DeviceController {
         } catch (error) {
             return errorResponse(404, 'Device not found', error.message);
         }
+    }
+
+    @Get('category/:categoryId')
+    async getDevicesByCategory(@Req() req: Request, @Res() res: Response) {
+        const result = await this.deviceService.findByCategory(req);
+        return res.status(result.statusCode).json(result);
     }
 
     @Patch(':id')
