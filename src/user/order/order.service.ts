@@ -230,7 +230,7 @@ export class OrderService {
     }  
 
     async updateOrder(orderId: string, updateOrderData: any) {
-        const { address_id, user_description, condition_id } = updateOrderData || {};
+        const { address_id, user_description, condition_id, device_model, device_brand } = updateOrderData || {};
 
         if (!address_id && !user_description && !condition_id) {
             return errorResponse(400, "At least one field (address_id, user_description, or condition_id) is required");
@@ -245,6 +245,8 @@ export class OrderService {
                 ...(address_id && { address_id }),
                 ...(user_description && { user_description }),
                 ...(condition_id && { condition_id }),
+                ...(device_model && { user_device_model: device_model }),
+                ...(device_brand && { user_device_brand: device_brand })
             },
             { new: true }
         );
