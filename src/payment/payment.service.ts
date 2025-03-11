@@ -30,7 +30,7 @@ export class PaymentService {
         return order;
     }
 
-    async verifyPayment(signature: string, orderId: string, paymentId: string) {
+    async verifyPayment(orderId: string, paymentId: string, signature: string) {
         const body = `${orderId}|${paymentId}`;
         const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
         hmac.update(body);
@@ -43,8 +43,7 @@ export class PaymentService {
             );
             await this.OrderModel.findOneAndUpdate(
                 { id: payment.order_id },
-                { status: 'confirmed' },
-                { payment_status: 'paid' }
+                { status: 'confirmed', payment_status: 'paid' }
             );
             return {verified: true};
         } else {
