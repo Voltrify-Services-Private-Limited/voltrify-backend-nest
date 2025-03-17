@@ -101,7 +101,7 @@ export class OrderService {
         await newOrder.save();
 
         // Create payment order
-        const paymentOrder = await this.paymentService.createOrder(finalAmount, orderId);
+        const paymentOrder = await this.paymentService.createOrder(service.visiting_charge, orderId);
         const payment = new this.PaymentModel({
             payment_id: paymentOrder.id,
             user_id: userId,
