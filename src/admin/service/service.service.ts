@@ -89,9 +89,10 @@ export class ServiceService {
 
     async create(req: Request) {
         const { deviceId, name, description, visitingCharge, price, city, type ,duration,categoryId} = req.body;
+        console.log(req.body);
 
-        if (!deviceId || !name || !visitingCharge || !price || !city || !type || !categoryId) {
-            return errorResponse(400, "All required fields (deviceId, name, visitingCharge, price, city, type,categoryId) must be provided");
+        if (!deviceId || !name || !visitingCharge || !price || !city || !type ) {
+            return errorResponse(400, "All required fields (deviceId, name, visitingCharge, price, city, type) must be provided");
         }
 
         if (!Object.values(ServiceType).includes(type)) {
@@ -100,7 +101,6 @@ export class ServiceService {
 
         const newService = new this.ServiceModel({
             device_id: deviceId,
-            category_id:categoryId,
             name: name,
             description: description,
             price: price,
@@ -176,7 +176,6 @@ export class ServiceService {
         service.city = city || service.city;
         service.type = type || service.type;
         service.duration = duration || service.duration;
-        service.category_id = categoryId || service.category_id;
 
         await service.save();
         return successResponse(200, "Service updated")

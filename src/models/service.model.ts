@@ -11,9 +11,6 @@ export class Service extends Document {
     @Prop({type: String, required: true, ref: 'Device'})
     device_id: string;
 
-    @Prop({type: String, required: true, ref: 'Category'})
-    category_id: string;
-
     @Prop({required: true})
     name: string;
 
