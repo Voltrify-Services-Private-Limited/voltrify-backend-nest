@@ -9,9 +9,24 @@ export class CartService {
     constructor(@InjectModel(Cart.name) private readonly cartModel: Model<Cart>) {
     }
 
-    async create(data: any) {
-        const newCart = await this.cartModel.create(data);
-        return successResponse(201, 'Cart created successfully');
+    async create(req: any) {
+        const user_id = req.user.id; // Extract user ID from request
+        const { service_id } = req.body;
+
+        if (!service_id) {
+            return errorResponse(400, 'Service ID is required.');
+        }
+
+        // Delete the existing cart entry if it exists
+        await this.cartModel.findOneAndDelete({ user_id });
+
+        // Create a new cart entry
+        const newCart = await this.cartModel.create({
+            user_id,
+            service_id,
+        });
+
+        return successResponse(201, 'Cart created successfully', newCart);
     }
 
     async findAll() {
@@ -52,10 +67,8 @@ export class CartService {
 
 
     async remove(id: string) {
-        const cart = await this.cartModel.findOneAndUpdate(
-            { id: id },
-            { deleted_at: new Date() },
-            { new: true, fields: { deleted_at: 1 } },
+        const cart = await this.cartModel.findOneAndDelete(
+            { id: id }
         );
         if (!cart) {
             return errorResponse(404, 'Cart not found');
