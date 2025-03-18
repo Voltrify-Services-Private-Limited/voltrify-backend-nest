@@ -14,8 +14,8 @@ export class ServiceController {
     }
 
     @Get(':condition')
-    async findOne(@Req() req: Request, @Res() res: Response) {
-        const result = await this.ServiceService.findOne(req);
+    async findWithFilters(@Req() req: Request, @Res() res: Response) {
+        const result = await this.ServiceService.findWithFilters(req);
         return res.status(result.statusCode).json(result)
     }
 

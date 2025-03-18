@@ -8,6 +8,7 @@ import { NotificationService } from "../notification/notification.service";
 import { User } from "../models/user.model";
 import {optMessageBody} from "../utils/constant.util";
 import {Admin} from "../models/admin.model";
+import {v4 as uuidv4} from 'uuid';
 
 @Injectable()
 export class OtpService {
@@ -48,14 +49,15 @@ export class OtpService {
         const otp = generateOtp(6); // Generating a dynamic 6-digit OTP
         newOtp.user_id = userId;
         newOtp.otp = otp;
+        newOtp.id = uuidv4()
         await newOtp.save();
 
         // Send OTP via SMS using NotificationService
-        const message = optMessageBody(otp);
-        const sendMessage = await this.notificationService.sendSMS(phoneNumber, message);
-        if (sendMessage.status !== 200){
-            return errorResponse(500, "Something went wrong")
-        }
-        return successResponse(201, "Otp created")
+        // const message = optMessageBody(otp);
+        // const sendMessage = await this.notificationService.sendSMS(phoneNumber, message);
+        // if (sendMessage.status !== 200){
+        //     return errorResponse(500, "Something went wrong")
+        // }
+        return successResponse(201, "Otp created", otp)
     }
 }

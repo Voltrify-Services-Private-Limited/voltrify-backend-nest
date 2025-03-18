@@ -10,11 +10,13 @@ export class UserController {
     }
 
     @Get()
+    @UseGuards(AuthGuard)
     async getUser(@Req() req: Request, @Res() res: Response){
         const result = await this.userService.get(req)
         return res.status(result.statusCode).json(result)
     }
     @Patch()
+    @UseGuards(AuthGuard)
     async updateUser(@Req() req: Request, @Res() res: Response){
         const result = await this.userService.update(req)
         return res.status(result.statusCode).json(result)

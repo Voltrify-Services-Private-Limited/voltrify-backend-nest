@@ -20,3 +20,6 @@ export class Cart extends Document {
 export const CartSchema = SchemaFactory.createForClass(Cart);
 
 CartSchema.index({ id: 1 }, { unique: true });
+
+// whenever new cart is created before it we need to check is there any other cart there for user
+// if yes then delete existing cart and create new one

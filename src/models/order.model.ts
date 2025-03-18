@@ -1,6 +1,7 @@
 import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import {Document} from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
+import {ServiceType} from '../utils/types/service-type.enum';
 
 @Schema({timestamps: true})
 export class Order extends Document {
@@ -16,40 +17,57 @@ export class Order extends Document {
     @Prop({type: String, required: true, ref: 'Device'})
     device_id: string;
 
-    @Prop({ type: String, required: true })
-    service_type: string;
+    @Prop({type: String, required: false})
+    user_description: string;
 
-    @Prop({ type: String, required: false })
-    service_details: string;
+    @Prop({type: String, required: false})
+    user_device_brand: string;
+
+    @Prop({type: String, required: false})
+    user_device_model: string;
+
+    @Prop({type: String, required: true, ref: 'Service'})
+    service_id: string;
+
+    @Prop({type: String, enum: ServiceType, required: true})
+    service_type: ServiceType;
 
     @Prop({type: String, required: false, ref: 'DeviceCondition'})
     condition_id: string;
 
-    @Prop({ type: Date, required: true })
-    time_slot: Date;
+    @Prop({type: String, required: true})
+    time_slot: string;
 
-    @Prop({ type: Number, required: false })
+    @Prop({type: String, required: true})
+    date: string;
+
+    @Prop({type: Number, required: false})
     service_duration: number;  // in minutes
 
-    @Prop({ type: String, ref: 'Technician', required: false })
+    @Prop({type: String, ref: 'Technician', required: false})
     technician_id: string;
 
-    @Prop({ type: String, ref: 'Store', required: false })
+    @Prop({type: String, ref: 'Store', required: false})
     store_id: string;
 
-    @Prop({ type: String, required: true, enum: ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'], default: 'pending' })
+    @Prop({
+        type: String,
+        required: true,
+        enum: ['pending', 'confirmed', 'in-progress', 'picked', 'delivered', 'completed', 'cancelled'],
+        default: 'pending'
+    })
     status: string;
 
-    @Prop({ type: String, required: true, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' })
+    @Prop({type: String, required: true, enum: ['pending', 'unpaid', 'paid', 'refunded'], default: 'pending'})
     payment_status: string;
 
-    @Prop({ type: String, required: true, enum: ['on-site', 'online'] })
+    @Prop({type: String, required: true, enum: ['on-site', 'online']})
     payment_mode: string;
 
-    @Prop({ type: String, required: false })
+    @Prop({type: String, required: false})
     payment_method: string;
 
-    @Prop({ type: [String], required: false })
+    @Prop({type: [String], required: false})
     coupons_code: string[];
 
     @Prop({type: Number, required: true})
@@ -69,7 +87,7 @@ export class Order extends Document {
     })
     components_charge: { component_name: string; cost: number }[];
 
-    @Prop({ type: Number, required: true })
+    @Prop({type: Number, required: true})
     total_charges: number;
 
     @Prop({type: Number, required: false})
@@ -81,13 +99,13 @@ export class Order extends Document {
     @Prop({type: Number, required: true})
     final_amount: number;
 
-    @Prop({ type: String, required: false })
+    @Prop({type: String, required: false})
     notes: string;
 
-    @Prop({ type: String, required: false })
+    @Prop({type: String, required: false})
     created_by: string;
 
-    @Prop({ type: String, required: false })
+    @Prop({type: String, required: false})
     updated_by: string;
 }
 

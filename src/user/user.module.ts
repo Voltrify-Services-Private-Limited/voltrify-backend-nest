@@ -6,13 +6,17 @@ import {MongooseModule} from "@nestjs/mongoose";
 import { AddressModule } from './address/address.module';
 import { CartModule } from './cart/cart.module';
 import { CouponsModule } from './coupon/coupons.module';
+import { OrderModule } from './order/order.module';
+import { cardModule } from './card/card.module';
 
 @Module({
   imports: [
       MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
       AddressModule,
       CartModule,
-      CouponsModule
+      CouponsModule,
+      OrderModule,
+      cardModule
       
   ],
   controllers: [UserController],
