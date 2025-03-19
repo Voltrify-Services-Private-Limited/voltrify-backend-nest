@@ -51,15 +51,9 @@ export class UserService {
         if (!otp) {
             return errorResponse(404, 'Otp not found. Resend otp or generate again')
         }
-    
-        // Allow random 6 digit for token generate 
-        if (!/^\d{6}$/.test(userOtp)) {
-            return errorResponse(400, 'Invalid OTP. Please enter a 6-digit number.');
-        }
-    
+        if (otp.otp === userOtp) {
             // Delete otp from db now
-            await this.otpModel.deleteOne({ otp: userOtp });
-    
+            await this.otpModel.deleteOne({otp: userOtp})
             const payload = {
                 id: user.id,
                 firstName: user.firstName,
@@ -68,21 +62,24 @@ export class UserService {
                 phoneNumber: user.phoneNumber
             }
             // Generate JWT access and refresh tokens
-            const accessToken = generateAccessToken(payload, this.configService.get<string>('JWT_SECRET'), '7d');
+            const accessToken = generateAccessToken(payload, this.configService.get<string>('JWT_SECRET'), '1h');
             const refreshToken = generateRefreshToken(user.id, this.configService.get<string>('JWT_REFRESH_SECRET'), '30d');
-        
+
             const responseData = {
                 accessToken: {
                     token: accessToken,
-                    expiresIn: '7 days'
+                    expiresIn: '1 hour'
                 },
                 refreshToken: {
                     token: refreshToken,
                     expiresIn: '30 days'
                 }
             }
-        return successResponse(200, 'Token generated successfully', responseData);
-    } 
+            return successResponse(200, 'Token generated successfully', responseData)
+        } else {
+            return errorResponse(400, 'Invalid OTP. Please try again.')
+        }
+    }
 
     async renewAccessToken(req: Request) {
         const refreshToken = req.body.refreshToken
