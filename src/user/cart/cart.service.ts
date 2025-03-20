@@ -29,10 +29,10 @@ export class CartService {
         return successResponse(201, 'Cart created successfully', newCart);
     }
 
-    async findAll() {
+    async findAll(req: any) {
         const carts = await this.cartModel.aggregate([
             {
-                $match: { deleted_at: null }, // Filter out soft-deleted carts
+                $match: { user_id: req.user.id, deleted_at: null }, // Filter out soft-deleted carts
             },
             {
                 $lookup: {

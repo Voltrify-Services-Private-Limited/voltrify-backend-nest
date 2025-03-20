@@ -16,7 +16,7 @@ export class CartController {
     @Get()
     @UseGuards(AuthGuard)
     async findAll(@Req() req: Request, @Res() res: Response) {
-        const result = await this.cartService.findAll();
+        const result = await this.cartService.findAll(req);
         return res.status(result.statusCode).json(result);
     }
     @Delete(':id')
