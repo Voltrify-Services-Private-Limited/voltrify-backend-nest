@@ -57,9 +57,8 @@ export class AddressService {
         return successResponse(201, "Address updated")
     }
 
-    async findAll(req: Request) {
-        const userId:string = req.params.id;
-        const addresses:any = await this.addressModel.find()
+    async findAll(req: any) {
+        const addresses:any = await this.addressModel.find({user_id: req.user.id})
         return successResponse(200, "All address of user", addresses)
     }
 
