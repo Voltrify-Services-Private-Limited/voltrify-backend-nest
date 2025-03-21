@@ -12,15 +12,16 @@ export class AddressService {
         @InjectModel(Address.name) private addressModel: Model<Address>,
         @InjectModel(User.name) private userModel: Model<User>,
     ) {}
-    async create(req: Request) {
-        const {firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode} = req.body;
+    async create(req: any) {
+        const {firstName, lastName, phoneNumber, addressLine1, addressLine2, landmark, city, state, pincode} = req.body;
+        const user_id = req.user.id
         // Now we will check, Is user is registered in db or not
         const user = await this.userModel.findOne({id: user_id})
         if (!user) {
             return errorResponse(404, 'User is not found or not registered')
         }
 
-        if (!firstName || !lastName || !phoneNumber || !user_id || !addressLine1 || !city || !state || !pincode) {
+        if (!firstName || !lastName || !phoneNumber || !addressLine1 || !city || !state || !pincode) {
             return errorResponse(400, 'Missing required fields');
         }
 
