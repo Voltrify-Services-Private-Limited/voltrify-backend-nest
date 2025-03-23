@@ -27,4 +27,10 @@ export class UserService {
         await user.save()
         return successResponse(200, 'Data updated')
     }
+
+    async deleteMyAccount(req: any){
+        const userId = req.user.id
+        const user = await this.userModel.findOneAndDelete({id: userId})
+        return successResponse(200, 'Account deleted')
+    }
 }

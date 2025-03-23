@@ -24,8 +24,7 @@ export class UserService {
 
         const user = await this.userModel.findOne({
             $or: [
-                {phoneNumber: phoneNumber},
-                {email: email}
+                {phoneNumber: phoneNumber}
             ]
         });
         if (user) {

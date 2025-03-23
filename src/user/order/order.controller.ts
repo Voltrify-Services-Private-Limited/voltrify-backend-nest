@@ -17,7 +17,7 @@ export class OrderController {
 
     @Get()
     async getAllOrders(@Req() req: Request, @Res() res: Response) {
-        const result = await this.orderService.getAllOrders();
+        const result = await this.orderService.getAllOrders(req);
         return res.status(result.statusCode).json(result);
     }
 

@@ -123,8 +123,9 @@ export class OrderService {
     }
 
 
-    async getAllOrders() {
+    async getAllOrders(req:any) {
         const orders = await this.OrderModel.aggregate([
+            {$match: { user_id: req.user.id }},
             {
                 $lookup: {
                     from: 'payments',
