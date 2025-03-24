@@ -25,10 +25,10 @@ export class AddressService {
             return errorResponse(400, 'Missing required fields');
         }
 
-        const existingAddress = await this.addressModel.findOne({ phoneNumber: phoneNumber });
-        if (existingAddress) {
-            return errorResponse(400, 'Phone number already exists');
-        }
+        // const existingAddress = await this.addressModel.findOne({ phoneNumber: phoneNumber });
+        // if (existingAddress) {
+        //     return errorResponse(400, 'Phone number already exists');
+        // }
 
         const address = new this.addressModel({firstName, lastName, phoneNumber, user_id, addressLine1, addressLine2, landmark, city, state, pincode});
 
