@@ -17,6 +17,9 @@ export class Order extends Document {
     @Prop({type: String, required: true, ref: 'Device'})
     device_id: string;
 
+    @Prop({type: Number, required: true, default: 1})
+    device_count: number;
+
     @Prop({type: String, required: false})
     user_description: string;
 

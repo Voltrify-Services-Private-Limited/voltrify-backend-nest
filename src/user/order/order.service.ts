@@ -37,7 +37,8 @@ export class OrderService {
             payment_mode,
             service_description,
             device_brand,
-            device_model
+            device_model,
+            deviceCount
         } = req.body;
 
         if (!cart_id || !address_id || !condition_id || !time_slot || !date || !payment_mode) {
@@ -71,7 +72,7 @@ export class OrderService {
         }
 
         // Perform necessary calculations
-        const totalCharges = service.visiting_charge + (service.price || 0);
+        const totalCharges = (service.visiting_charge + (service.price || 0)) * deviceCount;
         const finalAmount = totalCharges;
         const orderId = uuidv4();
 
@@ -92,6 +93,7 @@ export class OrderService {
             date,
             payment_mode,
             coupons_code,
+            device_count: deviceCount,
             visiting_charge: service.visiting_charge,
             service_charge: service.price,
             total_charges: totalCharges,
@@ -101,7 +103,7 @@ export class OrderService {
         await newOrder.save();
 
         // Create payment order
-        const paymentOrder = await this.paymentService.createOrder(service.visiting_charge, orderId);
+        const paymentOrder = await this.paymentService.createOrder(service.visiting_charge * deviceCount, orderId);
         const payment = new this.PaymentModel({
             payment_id: paymentOrder.id,
             user_id: userId,
