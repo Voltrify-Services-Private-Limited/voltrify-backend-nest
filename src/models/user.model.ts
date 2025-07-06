@@ -13,7 +13,7 @@ export class User extends Document {
     @Prop({required: true})
     lastName: string;
 
-    @Prop({required: true, unique: true})
+    @Prop({required: true})
     email: string;
 
     @Prop({required: true, unique: true})
