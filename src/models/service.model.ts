@@ -31,6 +31,9 @@ export class Service extends Document {
 
     @Prop({type: [String], required: true})
     city: string[];
+
+    @Prop({ type: Number })
+    priority: number;
 }
 
 export const ServiceSchema = SchemaFactory.createForClass(Service);

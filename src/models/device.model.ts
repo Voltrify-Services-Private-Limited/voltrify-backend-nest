@@ -18,6 +18,9 @@ export class Device extends Document {
 
   @Prop({ type: [String], default: [] }) 
   images: string[];
+
+  @Prop({ type: Number })
+  priority: number;
 }
 
 export const DeviceSchema = SchemaFactory.createForClass(Device);

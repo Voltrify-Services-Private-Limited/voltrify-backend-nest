@@ -30,9 +30,9 @@ export class DeviceController {
         @UploadedFiles() images?: Express.MulterS3.File[],
     ) {
         try {
-            const { name, description, categories_id } = body;
+            const { name, description, categories_id, priority } = body;
             const fileUrls = await this.s3Service.uploadMultipleFiles(images, "devices");
-            const device = await this.deviceService.create(name, description, categories_id, fileUrls);
+            const device = await this.deviceService.create(name, description, categories_id, fileUrls, priority);
             console.log(device);
             return successResponse(201, 'Device created successfully');
         } catch (error) {
@@ -75,9 +75,9 @@ export class DeviceController {
         @UploadedFiles() images?: Express.MulterS3.File[],
     ) {
         try {
-            const { name, description, categories_id } = body;
+            const { name, description, categories_id, priority } = body;
             const fileUrls = await this.s3Service.uploadMultipleFiles(images, "devices");
-            const updatedDevice = await this.deviceService.update(id, name, description, categories_id, fileUrls);
+            const updatedDevice = await this.deviceService.update(id, name, description, categories_id, fileUrls, priority);
             return successResponse(200, 'Device updated successfully', updatedDevice);
         } catch (error) {
             return errorResponse(400, 'Failed to update device', error.message);

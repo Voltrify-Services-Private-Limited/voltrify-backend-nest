@@ -76,6 +76,7 @@ export class ServiceService {
                     city: 1,
                     type: 1,            
                     duration: 1,
+                    priority: 1,
                     categoryId: '$category_id',
                     visitingCharge: '$visiting_charge',
                 },
@@ -88,7 +89,7 @@ export class ServiceService {
     }
 
     async create(req: Request) {
-        const { deviceId, name, description, visitingCharge, price, city, type ,duration,categoryId} = req.body;
+        const { deviceId, name, description, visitingCharge, price, city, type ,duration,categoryId, priority} = req.body;
         console.log(req.body);
 
         if (!deviceId || !name || !visitingCharge || !price || !city || !type ) {
@@ -107,7 +108,8 @@ export class ServiceService {
             visiting_charge: visitingCharge,
             city: Array.isArray(city) ? city : [city],
             type: type,
-            duration: duration
+            duration: duration,
+            priority: priority ? priority : 1000,
         });
 
         await newService.save(); 
@@ -160,7 +162,7 @@ export class ServiceService {
     }
 
     async update(req: Request) {
-        const { deviceId, name, description, visitingCharge, price, city, type,duration,categoryId } = req.body;
+        const { deviceId, name, description, visitingCharge, price, city, type,duration,categoryId, priority } = req.body;
         const id = req.params.id;
 
         const service = await this.ServiceModel.findOne({ id: id });
@@ -176,6 +178,7 @@ export class ServiceService {
         service.city = city || service.city;
         service.type = type || service.type;
         service.duration = duration || service.duration;
+        service.priority = priority ? priority : 1000;
 
         await service.save();
         return successResponse(200, "Service updated")

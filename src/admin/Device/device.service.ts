@@ -23,6 +23,7 @@ function getLookupPipeline(): PipelineStage[] {
                 description: 1,
                 images: 1,
                 categories_id: 1,
+                priority: 1,
                 categories_details: { id: 1, name: 1 },
             },
         },
@@ -37,10 +38,10 @@ export class DeviceService {
     ) {
     }
 
-    async create(name: string, description: string, categories_id: any, images: any): Promise<Device> {
+    async create(name: string, description: string, categories_id: any, images: any, priority: number): Promise<Device> {
         // categories_id = JSON.parse(categories_id)
         categories_id = categories_id.split(',');
-        const newDevice = new this.deviceModel({ name, description, categories_id, images });
+        const newDevice = new this.deviceModel({ name, description, categories_id, images, priority });
         return newDevice.save();
     }
 
@@ -100,11 +101,12 @@ export class DeviceService {
         description: string,
         categories_id: string[],
         images: string[],
+        priority: number
     ): Promise<Device> {
         const updatedDevice = await this.deviceModel
             .findOneAndUpdate(
                 { id },
-                { name, description, categories_id, $push: { images: { $each: images } } },
+                { name, description, categories_id, priority, $push: { images: { $each: images } } },
                 { new: true },
             )
             .exec();
