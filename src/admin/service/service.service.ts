@@ -80,7 +80,12 @@ export class ServiceService {
                     categoryId: '$category_id',
                     visitingCharge: '$visiting_charge',
                 },
-            }
+            },
+            {
+                $sort: {
+                    priority: 1, // ascending → lo wer priority comes first
+                },
+            },
         );
 
         const services = await this.ServiceModel.aggregate(pipeline).exec();

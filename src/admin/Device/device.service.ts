@@ -5,8 +5,8 @@ import { Device } from '../../models/device.model';
 import { S3Service } from '../../s3.service';
 import { successResponse } from '../../utils/response.util';
 
-function getLookupPipeline(): PipelineStage[] {
-    return [
+function getLookupPipeline(pageNo?: any, recordsPerPage?: any): PipelineStage[] {
+    const pipeline: PipelineStage[] = [
         {
             $lookup: {
                 from: 'categories',
@@ -27,7 +27,21 @@ function getLookupPipeline(): PipelineStage[] {
                 categories_details: { id: 1, name: 1 },
             },
         },
+        {
+            $sort: {
+                priority: 1, // ascending → lower priority comes first
+            },
+        },
     ];
+
+    // Pagination: only if pageNo and recordsPerPage are provided
+    if (pageNo !== undefined && recordsPerPage !== undefined) {
+        const skip = (Number(pageNo) - 1) * Number(recordsPerPage);
+        pipeline.push({ $skip: skip });
+        pipeline.push({ $limit: Number(recordsPerPage) });
+    }
+
+    return pipeline;
 }
 
 @Injectable()
@@ -45,8 +59,8 @@ export class DeviceService {
         return newDevice.save();
     }
 
-    async findAll(): Promise<Device[]> {
-        const pipeline = getLookupPipeline();
+    async findAll(pageNo: any, recordsPerPage: any): Promise<Device[]> {
+        const pipeline = getLookupPipeline(pageNo, recordsPerPage);
         const devices: any[] = await this.deviceModel.aggregate(pipeline).exec();
 
         // Transform each device to include pre-signed URLs for images

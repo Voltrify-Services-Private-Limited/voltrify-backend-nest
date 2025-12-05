@@ -42,9 +42,11 @@ export class DeviceController {
     }
 
     @Get()
-    async findAll() {
+    async findAll(@Req() req: Request) {
         try {
-            const devices = await this.deviceService.findAll();
+            const pageNo = req.query.pageNo;
+            const recordsPerPage = req.query.recordsPerPage;
+            const devices = await this.deviceService.findAll(pageNo, recordsPerPage);
             return successResponse(200, 'Devices retrieved successfully', devices);
         } catch (error) {
             return errorResponse(500, 'Failed to retrieve devices', error.message);
