@@ -37,16 +37,10 @@ export class ServiceService {
         const totalCountResult = await this.ServiceModel.aggregate(countPipeline).exec();
         const totalRecords = totalCountResult.length > 0 ? totalCountResult[0].totalRecords : 0;
 
-        // Sorting by createdAt in descending order (latest first)
+        // Sorting by priority
         pipeline.push({
-            $sort: { createdAt: -1 }
+            $sort: { priority: 1 }
         });
-
-        // Apply pagination only if both pageNo and totalRecords are provided
-        if (pageNo !== undefined && recordsPerPage !== undefined) {
-            const skip = (Number(pageNo) - 1) * Number(recordsPerPage);
-            pipeline.push({ $skip: skip }, { $limit: Number(recordsPerPage) });
-        }
 
         pipeline.push(
             {
@@ -80,14 +74,13 @@ export class ServiceService {
                     categoryId: '$category_id',
                     visitingCharge: '$visiting_charge',
                 },
-            },
-            {
-                $sort: {
-                    priority: 1, // ascending → lo wer priority comes first
-                },
-            },
+            }
         );
-
+        // Apply pagination only if both pageNo and totalRecords are provided
+        if (pageNo !== undefined && recordsPerPage !== undefined) {
+            const skip = (Number(pageNo) - 1) * Number(recordsPerPage);
+            pipeline.push({ $skip: skip }, { $limit: Number(recordsPerPage) });
+        }
         const services = await this.ServiceModel.aggregate(pipeline).exec();
 
         return { totalRecords, services };
