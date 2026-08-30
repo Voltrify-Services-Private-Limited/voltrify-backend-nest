@@ -16,8 +16,17 @@ export class User extends Document {
     @Prop({required: true})
     email: string;
 
-    @Prop({required: true, unique: true})
+    @Prop({required: false, unique: true, sparse: true})
     phoneNumber: string;
+
+    @Prop({type: String, required: false, unique: true, sparse: true})
+    googleId: string;
+
+    @Prop({type: String, default: 'phone', enum: ['phone', 'google']})
+    authProvider: string;
+
+    @Prop({type: String, required: false})
+    avatar: string;
 
     @Prop({default: false})
     verified: boolean;

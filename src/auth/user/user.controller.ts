@@ -20,6 +20,12 @@ export class UserController {
         return res.status(result.statusCode).json(result)
     }
 
+    @Post('google')
+    async loginWithGoogle(@Req() req: Request, @Res() res: Response){
+        const result = await this.userService.loginWithGoogle(req)
+        return res.status(result.statusCode).json(result)
+    }
+
     @Post('renew-token')
     async renewAccessToken(@Req() req: Request, @Res() res: Response){
         const result = await this.userService.renewAccessToken(req)

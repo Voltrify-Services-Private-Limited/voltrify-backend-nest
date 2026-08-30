@@ -31,11 +31,20 @@ export class NotificationService {
                 Message: message,
             };
             const command = new PublishCommand(params);
-            await this.snsClient.send(command);
-            console.log('SMS sent successfully');
+            const sms = await this.snsClient.send(command);
+            console.log('SMS sent successfully:', sms);
+            return {
+                status: 200,
+                message: 'SMS sent successfully',
+                data: sms,
+            };
         } catch (error) {
             console.error('Failed to send SMS:', error);
-            throw error;
+            return {
+                status: 500,
+                message: 'Failed to send SMS',
+                error: error.message,
+            };
         }
     }
 

@@ -6,6 +6,7 @@ import {errorResponse, successResponse} from "../../utils/response.util";
 import {Request} from 'express';
 import {Otp} from "../../models/otp.model";
 import {generateAccessToken, generateRefreshToken, verifyRefreshToken} from '../../utils/jwt.util';
+import {verifyGoogleIdToken} from '../../utils/google.util';
 import {ConfigService} from "@nestjs/config";
 
 @Injectable()
@@ -78,6 +79,87 @@ export class UserService {
         } else {
             return errorResponse(400, 'Invalid OTP. Please try again.')
         }
+    }
+
+    async loginWithGoogle(req: Request) {
+        const idToken = req.body.idToken || req.body.id_token;
+        console.log("api is running:", idToken);
+        if (!idToken) {
+            return errorResponse(400, 'Google idToken is required');
+        }
+
+        // Verify token with Google
+        let googlePayload;
+        try {
+            googlePayload = await verifyGoogleIdToken(idToken);
+        } catch (e) {
+            return errorResponse(401, 'Invalid or expired Google token');
+        }
+
+        const email = googlePayload.email;
+        const googleId = googlePayload.sub;
+        if (!email || !googleId) {
+            return errorResponse(400, 'Google account did not provide a valid email');
+        }
+
+        // Find user by googleId first, then fall back to email (account linking)
+        let user = await this.userModel.findOne({googleId});
+        if (!user) {
+            user = await this.userModel.findOne({email});
+        }
+
+        if (user) {
+            // Link Google to an existing (e.g. phone-registered) account if needed
+            let shouldSave = false;
+            if (!user.googleId) {
+                user.googleId = googleId;
+                shouldSave = true;
+            }
+            if (!user.verified && googlePayload.email_verified) {
+                user.verified = true;
+                shouldSave = true;
+            }
+            if (!user.avatar && googlePayload.picture) {
+                user.avatar = googlePayload.picture;
+                shouldSave = true;
+            }
+            if (shouldSave) {
+                await user.save();
+            }
+        } else {
+            // Create a brand new Google user (no phone number required)
+            user = new this.userModel();
+            user.firstName = googlePayload.given_name || googlePayload.name || '';
+            user.lastName = googlePayload.family_name || '';
+            user.email = email;
+            user.googleId = googleId;
+            user.authProvider = 'google';
+            user.avatar = googlePayload.picture;
+            user.verified = !!googlePayload.email_verified;
+            await user.save();
+        }
+
+        const payload = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phoneNumber: user.phoneNumber
+        }
+        const accessToken = generateAccessToken(payload, this.configService.get<string>('JWT_SECRET'), '1h');
+        const refreshToken = generateRefreshToken(user.id, this.configService.get<string>('JWT_REFRESH_SECRET'), '30d');
+
+        const responseData = {
+            accessToken: {
+                token: accessToken,
+                expiresIn: '1 hour'
+            },
+            refreshToken: {
+                token: refreshToken,
+                expiresIn: '30 days'
+            }
+        }
+        return successResponse(200, 'Token generated successfully', responseData)
     }
 
     async renewAccessToken(req: Request) {

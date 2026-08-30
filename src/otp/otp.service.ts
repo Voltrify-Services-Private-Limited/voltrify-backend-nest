@@ -55,7 +55,7 @@ export class OtpService {
         if (!isAdmin){
             // Send OTP via SMS using NotificationService
             const message = optMessageBody(otp);
-            const sendMessage = await this.notificationService.sendSMS(phoneNumber, message);
+            const sendMessage = await this.notificationService.sendSMSByAwsSns(phoneNumber, message);
             if (sendMessage.status !== 200){
                 return errorResponse(500, "Something went wrong")
             }
